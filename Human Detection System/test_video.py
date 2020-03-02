@@ -16,8 +16,8 @@ while(True):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     
     #Define range of yellow in HSV (hue range is [0,179], saturation range is [0,255], and value range is [0,255])
-    lower = np.array([28,0,117]) #40, 0, 117
-    upper = np.array([40,255,255]) #57, 255, 255
+    lower = np.array([26,0,117]) #28   40, 0, 117
+    upper = np.array([42,255,255]) #40   57, 255, 255
     
     #Threshold the HSV image to get only yellow colors
     mask = cv2.inRange(hsv, lower, upper)
