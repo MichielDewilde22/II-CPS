@@ -17,6 +17,11 @@ for i = 1:length(X)
     coneMat(X(i),Y(i),Z(i)) = 1;
 end
 
+plot3(X,Y,Z,'*');
+xlim([0 matrixSize])
+ylim([0 matrixSize])
+zlim([0 matrixSize])
+
 for xIt = 1: length(coneMat(:,1,1))
     for yIt = 1: length(coneMat(1,:,1))
         for zIt = 1: length(coneMat(1,1,:))
@@ -30,15 +35,12 @@ for xIt = 1: length(coneMat(:,1,1))
             %length of line
             projOriginDist = sqrt(originDist^2-L2distance^2);
             if  projOriginDist < (lineLength + buffer)
-%                falloffAngle = 1 / (atan(L2distance/projOriginDist));
-%                coneMat(xIt,yIt,zIt) = 1 - (falloffAngle/maxAngle);
-                if(L2distance<5)
-                    coneMat(xIt,yIt,zIt)=1;
-                end
+               falloffAngle = 1 / (atan(L2distance/projOriginDist));
+               coneMat(xIt,yIt,zIt) = 1 - (falloffAngle/maxAngle);
             end
         end
     end
 end
 idx = find(coneMat);
-[X,Y,Z] = ind2sub(size(coneMat), idx);
-scatter3(X,Y,Z,'B')
+[X,Y,Z] = ind2sub(size(yourlogicalarray), idx);
+scatter(X,Y,Z)
