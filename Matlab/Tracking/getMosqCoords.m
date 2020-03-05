@@ -1,4 +1,4 @@
-function[mosqX,mosqY,mosqZ] = getMosqCoords;
+function[mosqX,mosqY,mosqZ] = getMosqCoords
 
 %Initialize Qualisys object and get current position of array. Find way to
 %locate different [m objects.
@@ -25,23 +25,7 @@ matCone3=intensityCone3D(arrayLoc3,endpoint(3));
 coneMat=matCone1.*matCone2.*matCone3;
 [mxv,index] = max(coneMat,[],[1 2 3],'linear');
 [mosqX,mosqY,mosqZ] = ind2sub(size(coneMat),index);
-
-idx = find((0.25>coneMat)&(0<coneMat));
-[X,Y,Z] = ind2sub(size(coneMat), idx);
-scatter3(X,Y,Z,'B')
-hold on
-xlim([0 100])
-ylim([0 100])
-zlim([0 100])
-idx = find((0.5>coneMat)&(0.25<coneMat));
-[X,Y,Z] = ind2sub(size(coneMat), idx);
-scatter3(X,Y,Z,'Gr')
-idx = find((0.75>coneMat)&(0.5<coneMat));
-[X,Y,Z] = ind2sub(size(coneMat), idx);
-scatter3(X,Y,Z,'Y')
-idx = find(coneMat>0.75);
-[X,Y,Z] = ind2sub(size(coneMat), idx);
-scatter3(X,Y,Z,'R')
+end
 
 function pos = getCurrentPosition(q)
   % in milimeter

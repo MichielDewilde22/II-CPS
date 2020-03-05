@@ -14,6 +14,8 @@ for i = 1:length(X)
     coneMat(X(i),Y(i),Z(i)) = 1;
 end
 
+lineLength = sqrt(sum((origin-endpoint).^2));
+
 for xIt = 1: length(coneMat(:,1,1))
     for yIt = 1: length(coneMat(1,:,1))
         for zIt = 1: length(coneMat(1,1,:))
@@ -21,7 +23,6 @@ for xIt = 1: length(coneMat(:,1,1))
             
             %distance point point = sqrt((x2-x1)^2 + (y2-y1)^2 + (z2-z1)^2)
             originDist = sqrt(sum((origin-currentCell).^2));
-            lineLength = sqrt(sum((origin-endpoint).^2));
             L2distance = point_to_line(currentCell, origin,endpoint);
             %See pythogorian: can only be used if sqrt(originDist^2-L2distance^2) <
             %length of line
