@@ -7,7 +7,7 @@
 %dus lin array van 1-...... waardoor elke cel zijn coord krijgt in lin vorm
 %in die functie dan ind2sub gebruike om coord te krijge en daarmee rekene
 
-dims = [10,10,3];
+dims = [1000,100,100];
 A=1:1:(dims(1)*dims(2)*dims(3));
 B=reshape(A,dims);
 C=arrayfun(@testFun,B);
