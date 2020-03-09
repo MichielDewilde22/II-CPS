@@ -53,15 +53,15 @@ class HDSMatlabSocket:
         self.__open_socket__()
 
         # 2: listening until a stop signal is received
-        self.logger.info("Listen thread started.")
+        self.logger.debug("Listen thread started.")
         stop_thread = 0
         while not stop_thread:
             data, addr = self.sock.recvfrom(1024)
             data_string = str(data)
-            self.logger.info("Data received: " + data_string)
+            self.logger.debug("Data received: " + data_string)
             if data == STOP_SIGNAL_BYTES:
                 stop_thread = 1
-                self.logger.info("Received stop signal")
+                self.logger.debug("Received stop signal")
             else:
                 try:
                     # The received string has the following format: " b'<FLOAT_1>,<FLOAT_2>' "
@@ -75,7 +75,7 @@ class HDSMatlabSocket:
 
                 except ValueError as msg:
                     self.logger.error("Error in parsing string to floats: " + str(msg))
-        self.logger.info("Listen thread stopped.")
+        self.logger.debug("Listen thread stopped.")
 
         # 3: closing socket
         self.sock.close()
@@ -90,8 +90,8 @@ class HDSMatlabSocket:
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.sock.bind((self.ip_address, self.udp_port))
         except socket.error as msg:
-            self.logger.error("Problem opening UDP socket. Exiting..." + msg[0])
+            self.logger.critical("Problem opening UDP socket. Exiting..." + msg[0])
             sys.exit(0)
 
-        self.logger.info("Socket successfully opened.")
+        self.logger.debug("Socket successfully opened.")
 

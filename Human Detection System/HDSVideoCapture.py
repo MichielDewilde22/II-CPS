@@ -44,7 +44,7 @@ class HDSVideoCapture:
 
     # Method for executing in thread for video capturing and processing data
     def __capture__(self):
-        self.logger.info("Capture thread started.")
+        self.logger.debug("Capture thread started.")
         self.stop_thread = 0
         frame_number = 1
 
@@ -79,4 +79,4 @@ class HDSVideoCapture:
 
         cap.release()
         cv2.destroyAllWindows()
-        self.logger.info("Video capture thread stopped")
+        self.logger.debug("Video capture thread stopped")

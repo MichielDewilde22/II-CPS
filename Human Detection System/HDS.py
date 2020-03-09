@@ -110,8 +110,9 @@ angle_calculator = HDSAngleCalculator.HDSAngleCalculator(logger)
 ###############################################
 matlab_socket.start_listening()
 video_capture.start_capture()
-logger.info("Matlab Socket & Video Capture threads are started")
+logger.info("Matlab Socket & Video Capture threads are started.")
 
+logger.info("Starting main loop: ")
 while 1:
     if matlab_socket.is_new_data():
         h_angle, v_angle, r_time = matlab_socket.get_data()
