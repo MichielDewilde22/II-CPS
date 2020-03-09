@@ -3,21 +3,21 @@ import socket
 import threading
 import time
 
-# MATLABSOCKET is a class that creates a thread for receiving the angles that are being send through UDP by Matlab.
-
-UDP_IP = "192.168.69.10"
-UDP_PORT = 6969
+# CPSMATLABSOCKET is a class that creates a thread for receiving the angles that are being send through UDP by Matlab.
 STOP_SIGNAL_BYTES = str("stop").encode()
 
 
 class HDSMatlabSocket:
     # Constructor method
-    def __init__(self):
+    def __init__(self, logger, ip_address, udp_port):
         self.sock = None
         self.listen_thread = None
         self.last_received_time = None
         self.horizontal_angle = None
         self.azimuth_angle = None
+        self.udp_port = udp_port  # UDP port used by the receiving socket
+        self.ip_address = ip_address  # IP address of the RaspberryPi itself (e.g. 192.168.1.10)
+        self.logger = logger
         self.new_data = 0
 
     # Destructor method
@@ -34,7 +34,7 @@ class HDSMatlabSocket:
     # Method for stopping the listening thread
     def stop_listening(self):
         if self.sock is not None:
-            self.sock.sendto(STOP_SIGNAL_BYTES, (UDP_IP, UDP_PORT))
+            self.sock.sendto(STOP_SIGNAL_BYTES, (self.udp_port, self.ip_address))
             time.sleep(1)
         self.listen_thread = None
 
@@ -53,15 +53,15 @@ class HDSMatlabSocket:
         self.__open_socket__()
 
         # 2: listening until a stop signal is received
-        print("Listen thread started.")
+        self.logger.info("Listen thread started.")
         stop_thread = 0
         while not stop_thread:
             data, addr = self.sock.recvfrom(1024)
             data_string = str(data)
-            print("Data received: " + data_string)
+            self.logger.info("Data received: " + data_string)
             if data == STOP_SIGNAL_BYTES:
                 stop_thread = 1
-                print("Received stop signal")
+                self.logger.info("Received stop signal")
             else:
                 try:
                     # The received string has the following format: " b'<FLOAT_1>,<FLOAT_2>' "
@@ -74,8 +74,8 @@ class HDSMatlabSocket:
                     self.new_data = 1
 
                 except ValueError as msg:
-                    print("Error in parsing string to floats: " + str(msg))
-        print("Listen thread stopped.")
+                    self.logger.error("Error in parsing string to floats: " + str(msg))
+        self.logger.info("Listen thread stopped.")
 
         # 3: closing socket
         self.sock.close()
@@ -88,10 +88,10 @@ class HDSMatlabSocket:
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.sock.bind((UDP_IP, UDP_PORT))
+            self.sock.bind((self.ip_address, self.udp_port))
         except socket.error as msg:
-            print("Problem opening UDP socket. Exiting..." + msg[0])
+            self.logger.error("Problem opening UDP socket. Exiting..." + msg[0])
             sys.exit(0)
 
-        print("Socket successfully opened.")
+        self.logger.info("Socket successfully opened.")
 

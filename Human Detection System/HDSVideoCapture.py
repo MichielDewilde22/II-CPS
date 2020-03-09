@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import time
 import threading
+import logging
 
 H_MIN = 30
 S_MIN = 0
@@ -13,10 +14,11 @@ V_MAX = 255
 
 class HDSVideoCapture:
     # Constructor method
-    def __init__(self):
+    def __init__(self, logger):
         self.cap = None
         self.capture_thread = None
         self.stop_thread = 0
+        self.logger = logger
 
     def __del__(self):
         self.stop_capture()
@@ -37,7 +39,7 @@ class HDSVideoCapture:
 
     # Method for executing in thread for video capturing and processing data
     def __capture__(self):
-        print("Capture thread started.")
+        self.logger.info("Capture thread started.")
         self.stop_thread = 0
         frame_number = 1
 
@@ -68,9 +70,8 @@ class HDSVideoCapture:
             if k == 27:
                 break
 
-            print("Processed frame: " + str(frame_number))
             frame_number = frame_number + 1
 
         cap.release()
         cv2.destroyAllWindows()
-        print("Capture thread stopped.")
+        self.logger.info("Video capture thread stopped")
