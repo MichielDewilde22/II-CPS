@@ -123,5 +123,10 @@ while 1:
         logger.info(msg_str)
         msg_str = " - h pixel = " + str(h_pixel) + " , v pixel = " + str(v_pixel)
         logger.info(msg_str)
+
+        # check if we can shoot this pixel
+
+        # set fire signal to true or false
+
     else:
         time.sleep(0.010)
