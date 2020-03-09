@@ -40,6 +40,8 @@ class HDSAngleCalculator:
     def convert_angle_to_pixel(self, h_angle, v_angle):
         h_pixel = round(((h_angle / self.h_degrees_pp) * (-1.0)) + self.h_centre_pixel)
         v_pixel = round((v_angle / self.v_degrees_pp) + self.v_centre_pixel)
-        h_pixel = max(0, min(self.h_res, h_pixel))
-        v_pixel = max(0, min(self.v_res, v_pixel))
+        if h_pixel < 0 or h_pixel > self.h_res:
+            h_pixel = -1
+        if v_pixel < 0 or v_pixel > self.v_res:
+            v_pixel = -1
         return h_pixel, v_pixel
