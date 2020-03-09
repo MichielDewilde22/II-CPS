@@ -5,7 +5,7 @@ import time
 
 # MATLABSOCKET is a class that creates a thread for receiving the angles that are being send through UDP by Matlab.
 
-UDP_IP = "localhost"
+UDP_IP = "192.168.69.10"
 UDP_PORT = 6969
 STOP_SIGNAL_BYTES = str("stop").encode()
 
