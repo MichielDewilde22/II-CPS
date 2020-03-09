@@ -4,12 +4,17 @@ import time
 import threading
 import logging
 
+# HSV minimum and maximum values
 H_MIN = 30
 S_MIN = 0
 V_MIN = 117
 H_MAX = 38
 S_MAX = 255
 V_MAX = 255
+
+# Camera constants
+HORIZONTAL_RES = 720
+VERTICAL_RES = 480
 
 
 class HDSVideoCapture:

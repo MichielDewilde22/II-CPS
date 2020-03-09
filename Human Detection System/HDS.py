@@ -1,5 +1,6 @@
 import HDSMatlabSocket
 import HDSVideoCapture
+import HDSAngleCalculator
 import time
 import argparse
 import logging
@@ -8,15 +9,23 @@ import sys
 
 print("HUMAN DETECTION SYSTEM STARTED")
 stop = 0
+matlab_socket = None
+video_capture = None
 
 
 ###############################################
 # 1) SIGNAL HANDLER
 ###############################################
 def signal_handler(signal, frame):
-    global stop
-    print("You pressed ctrl^c.")
+    global stop, matlab_socket, video_capture
+    print("You pressed ctrl^c. Exiting in three seconds...")
     stop = 1
+    if matlab_socket is not None:
+        matlab_socket.__del__()
+    if video_capture is not None:
+        video_capture.__del__()
+    time.sleep(3)
+    sys.exit(0)
 
 
 # activating signal handler
@@ -30,7 +39,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--ipconfig", type=str,
                     help="The IP configuration of the application. Supported are: 'lab', 'Toon' & 'Michiel'. (default "
                          "configuration is 'Lab'.")
-parser.add_argument("--logger", action="store_true",
+parser.add_argument("--logger", type=str,
                     help="Logger options: DEBUG, INFO, WARNING, ERROR, CRITICAL (default configuration is INFO).")
 
 args = parser.parse_args()
@@ -48,10 +57,12 @@ if args.logger:
         logger.setLevel(logging.DEBUG)
         handler.setLevel(logging.DEBUG)
         logger.addHandler(handler)
+        logger.info("Logger configuration: DEBUG")
     elif log_str == "INFO":
         logger.setLevel(logging.INFO)
         handler.setLevel(logging.INFO)
         logger.addHandler(handler)
+        logger.info("Logger configuration: INFO")
     elif log_str == "WARNING":
         logger.setLevel(logging.WARNING)
         handler.setLevel(logging.WARNING)
@@ -68,11 +79,13 @@ if args.logger:
         logger.setLevel(logging.INFO)
         handler.setLevel(logging.INFO)
         logger.addHandler(handler)
+        logger.info("Logger configuration: INFO")
 else:
     logger.setLevel(logging.INFO)
     handler.setLevel(logging.INFO)
     logger.addHandler(handler)
-logger.info("Logger configuration: " + str(logger.level))
+    logger.info("Logger configuration: INFO")
+
 
 # parsing IP configuration argument
 ip_address = "192.168.1.10"  # default IP address for lab
@@ -90,13 +103,7 @@ logger.info("IP Configuration: " + ip_address)
 ###############################################
 matlab_socket = HDSMatlabSocket.HDSMatlabSocket(logger, ip_address, 6969)
 video_capture = HDSVideoCapture.HDSVideoCapture(logger)
-
-###############################################
-# 3) INITIALIZING PARAMETERS
-###############################################
-
-matlab_socket.start_listening()
-video_capture.start_capture()
+angle_calculator = HDSAngleCalculator(logger)
 
 ###############################################
 # 4) MAIN LOOP
@@ -105,15 +112,9 @@ matlab_socket.start_listening()
 video_capture.start_capture()
 logger.info("Matlab Socket & Video Capture threads are started")
 
-time.sleep(60)
-
-logger.info("Stopping threads")
-matlab_socket.stop_listening()
-video_capture.stop_capture()
-time.sleep(5)
-
-logger.info("Deleting classes")
-matlab_socket.__del__()
-video_capture.__del__()
-
-print("Exiting...")
+while 1:
+    if matlab_socket.is_new_data():
+        h_angle, v_angle, r_time = matlab_socket.get_data()
+        h_pixel, v_pixel = angle_calculator.convert_angle_to_pixel(h_angle, v_angle)
+        msg_str = "Calculated: h pixel = " + str(h_pixel) + " , v pixel = " + str(v_pixel)
+        logger.info(msg_str)

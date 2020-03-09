@@ -34,7 +34,7 @@ class HDSMatlabSocket:
     # Method for stopping the listening thread
     def stop_listening(self):
         if self.sock is not None:
-            self.sock.sendto(STOP_SIGNAL_BYTES, (self.udp_port, self.ip_address))
+            self.sock.sendto(STOP_SIGNAL_BYTES, (self.ip_address, self.udp_port))
             time.sleep(1)
         self.listen_thread = None
 
