@@ -10,7 +10,7 @@ matlab_socket.start_listening()
 video_capture.start_capture()
 
 print("2: Threads are started")
-time.sleep(60)
+time.sleep(30)
 
 print("3: stopping threads")
 matlab_socket.stop_listening()
