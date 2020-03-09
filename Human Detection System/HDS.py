@@ -20,14 +20,14 @@ def signal_handler(signal, frame):
 
 
 # activating signal handler
-signal.signal(signal.CTRL_C_EVENT, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
 
 
 ###############################################
 # 2) ARGUMENT PARSING
 ###############################################
 parser = argparse.ArgumentParser()
-parser.add_argument("--ipconfig", action="store_true",
+parser.add_argument("--ipconfig", type=str,
                     help="The IP configuration of the application. Supported are: 'lab', 'Toon' & 'Michiel'. (default "
                          "configuration is 'Lab'.")
 parser.add_argument("--logger", action="store_true",
