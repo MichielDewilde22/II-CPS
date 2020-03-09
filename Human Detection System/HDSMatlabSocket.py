@@ -10,7 +10,7 @@ UDP_PORT = 6969
 STOP_SIGNAL_BYTES = str("stop").encode()
 
 
-class MatlabSocket:
+class HDSMatlabSocket:
     # Constructor method
     def __init__(self):
         self.sock = None
@@ -22,10 +22,7 @@ class MatlabSocket:
 
     # Destructor method
     def __del__(self):
-        if self.sock is not None:
-            self.sock.sendto(STOP_SIGNAL_BYTES, (UDP_IP, UDP_PORT))
-            time.sleep(1)
-        self.listen_thread = None
+        self.stop_listening()
 
     # Method for starting the listening thread
     def start_listening(self):
