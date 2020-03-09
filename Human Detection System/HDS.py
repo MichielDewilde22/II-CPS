@@ -103,7 +103,7 @@ logger.info("IP Configuration: " + ip_address)
 ###############################################
 matlab_socket = HDSMatlabSocket.HDSMatlabSocket(logger, ip_address, 6969)
 video_capture = HDSVideoCapture.HDSVideoCapture(logger)
-angle_calculator = HDSAngleCalculator(logger)
+angle_calculator = HDSAngleCalculator.HDSAngleCalculator(logger)
 
 ###############################################
 # 4) MAIN LOOP
