@@ -47,7 +47,7 @@ args = parser.parse_args()
 # setup logger
 logger = logging.getLogger()
 handler = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter('LOG: %(message)s')
+formatter = logging.Formatter('LOG %(levelname)s : %(message)s')
 handler.setFormatter(formatter)
 
 # parsing logger argument
