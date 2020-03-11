@@ -96,8 +96,6 @@ class HDSAngleCalculator:
         h_pixel = round(h_pixel_pos / self.h_meters_pp) + self.h_centre_pixel
         v_pixel = round(v_pixel_pos / self.v_meters_pp) + self.v_centre_pixel
 
-        print("intermediate pixel result: h=" + str(h_pixel) + " , v=" + str(v_pixel))
-
         # if the pixel is out of bounds (larger/smaller than min/max resolution), we return -1
         if (h_pixel < 0) or (h_pixel > self.h_res):
             h_pixel = -1
