@@ -45,7 +45,7 @@ class HDSAngleCalculator:
             self.focal_length = FOCAL_LENGTH_V2
             self.sensor_width = SENSOR_WIDTH_V2
             self.sensor_height = SENSOR_HEIGHT_V2
-            self.h_meters_pp = SENSOR_WIDTH_V2 / self.h_res
+            self.h_meters_pp = SENSOR_WIDTH_V2 / self.h_res  # meters per pixel
             self.v_meters_pp = SENSOR_HEIGHT_V2 / self.v_res
 
             # constants for old formula
@@ -56,7 +56,7 @@ class HDSAngleCalculator:
             self.focal_length = FOCAL_LENGTH_V1
             self.sensor_width = SENSOR_WIDTH_V1
             self.sensor_height = SENSOR_HEIGHT_V1
-            self.h_meters_pp = SENSOR_WIDTH_V1 / self.h_res
+            self.h_meters_pp = SENSOR_WIDTH_V1 / self.h_res  # meters per pixel
             self.v_meters_pp = SENSOR_HEIGHT_V1 / self.v_res
 
             # constants for old formula
@@ -82,8 +82,29 @@ class HDSAngleCalculator:
 
         return h_angle, v_angle
 
+    # Conversion formula for converting angles to pixels (see camera pinhole model)
     def angle_to_pixel(self, h_angle, v_angle):
-        pass
+        # conversion of degrees to radians
+        h_angle_rad = math.radians(h_angle)
+        v_angle_rad = math.radians(v_angle * (-1.0))
+
+        # calculation of angle converted to position of pixel position on camera sensor
+        h_pixel_pos = self.focal_length * math.tan(h_angle_rad)
+        v_pixel_pos = self.focal_length * math.tan(v_angle_rad)
+
+        # converting position on sensor to pixel
+        h_pixel = round(h_pixel_pos / self.h_meters_pp) + self.h_centre_pixel
+        v_pixel = round(v_pixel_pos / self.v_meters_pp) + self.v_centre_pixel
+
+        print("intermediate pixel result: h=" + str(h_pixel) + " , v=" + str(v_pixel))
+
+        # if the pixel is out of bounds (larger/smaller than min/max resolution), we return -1
+        if (h_pixel < 0) or (h_pixel > self.h_res):
+            h_pixel = -1
+        if (v_pixel < 0) or (v_pixel > self.v_res):
+            v_pixel = -1
+
+        return h_pixel, v_pixel
 
     # the 'old' linear pixel to angle conversion (faulty)
     def pixel_to_angle_old(self, h_pixel, v_pixel):
