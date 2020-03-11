@@ -116,7 +116,7 @@ logger.info("Starting main loop: ")
 while 1:
     if matlab_socket.is_new_data():
         h_angle, v_angle, r_time = matlab_socket.get_data()
-        h_pixel, v_pixel = angle_calculator.angle_to_pixel_old(h_angle, v_angle)
+        h_pixel, v_pixel = angle_calculator.angle_to_pixel(h_angle, v_angle)
         msg_str = "CALCULATION: "
         logger.info(msg_str)
         msg_str = " - h angle = " + str(h_angle) + " , v angle = " + str(v_angle)
