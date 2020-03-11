@@ -22,12 +22,19 @@ while(True):
     #Threshold the HSV image to get only yellow colors
     mask = cv2.inRange(hsv, lower, upper)
     
+    #Perform erosion/opening
+    kernel = np.ones((4,4), np.uint8)
+    eroded_mask = cv2.erode(mask, kernel, iterations = 1)
+    opened_mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    
     #Bitwise-AND mask and original image
-    result = cv2.bitwise_and(frame,frame, mask= mask)
+    result = cv2.bitwise_and(frame,frame, mask= opened_mask)
     
     #Display the resulting frame
     cv2.imshow('frame', frame)
     cv2.imshow('mask', mask)
+    cv2.imshow('eroded_mask', eroded_mask)
+    cv2.imshow('opened_mask', opened_mask)
     cv2.imshow('result', result)
     k = cv2.waitKey(5) & 0xFF
     #if cv2.waitKey(1) & 0xFF == ord('q'):
