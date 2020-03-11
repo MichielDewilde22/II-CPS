@@ -16,7 +16,7 @@ FOCAL_LENGTH_V2 = 0.00304
 SENSOR_WIDTH_V1 = 0.0037
 SENSOR_HEIGHT_V1 = 0.00274
 SENSOR_WIDTH_V2 = 0.00368
-SENSOR_HEIGHT_V2 = 0.00376
+SENSOR_HEIGHT_V2 = 0.00276
 
 # This Angle Calculator class translates camera pixel coordinates into two angles and vice versa.
 # The two angles are measured perpendicular to the camera lens orientation. The first angle is the vertical angle. The
