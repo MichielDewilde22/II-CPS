@@ -4,6 +4,12 @@ arrayLoc1=[1 1 1];  end1=[80 80 80];
 arrayLoc2=[1 80 1]; end2=[80 1 80];
 arrayLoc3=[80 1 1]; end3=[1 80 80];
 tic
+PA = [arrayLoc1; arrayLoc2; arrayLoc3];
+PB = [end1; end2; end3];
+tic
+intersectPt = lineIntersect3D(PA,PB);
+toc
+scatter(intersectPt(1),intersectPt(2),intersectPt(3));
 matCone1=intensityCone3D(arrayLoc1,end1);
 matCone2=intensityCone3D(arrayLoc2,end2);
 matCone3=intensityCone3D(arrayLoc3,end3);
