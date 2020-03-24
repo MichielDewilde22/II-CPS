@@ -9,13 +9,15 @@ beamformInit();
 % Ground truth X,Y,Z coordinates from path created by Robbe (Nx3)
 soundLocations = createPath();
 
+%start simulink here
+
 % - nodes                : Matrix of node location and orientations (Nx6) [X, Y, Z, rX, rY, rZ]
 nodes = [array1; array2; array3];
-arraysBFData = generateBFData(nodes,soundLocations, usedArray);
+%generate mic array output
+arraysBFData = generateMicArrayData(nodes,soundLocations, usedArray);
+%Do beamforming
 AzElArray = getAzEl();
+endpoints = [cos(angles(:,2))*cos(angles(:,1)), cos(angles(:,2))*sin(angles(:,1)), sin(angles(:,2))];
 
-for i = 1: size(AzElArray,1)
-    
-end
-
-a = lineIntersect3D([ 1 1 1; 2 2 2], [2 2 2; 3 3 3]);
+%use TDoA to find the approximate position of the mosquito
+mosqCoords = getMosqCoords(nodes, endpoints);
