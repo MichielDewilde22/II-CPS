@@ -7,7 +7,7 @@
 %dus lin array van 1-...... waardoor elke cel zijn coord krijgt in lin vorm
 %in die functie dan ind2sub gebruike om coord te krijge en daarmee rekene
 tic;
-dims = [500,500,500];
+dims = [200,200,200];
 A=1:1:(dims(1)*dims(2)*dims(3));
 B=reshape(A,dims);
 B=gpuArray(B);

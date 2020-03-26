@@ -20,7 +20,8 @@ function [POWER] = appBeamformer(domain, band, data, A, angles, algorithm, senso
                     POWER = sum(abs(POWER));
                     return
                 case 'Frequency domain'
-                  
+                    dataFFT_temp = (fft(data,450)).';
+                    dataFFT = dataFFT_temp(:,20:100); % 32 x 81
             end
             
         case 'Narrow'
