@@ -1,9 +1,5 @@
 function[mosqX,mosqY,mosqZ] = getMosqCoords;
 
-%Initialize Qualisys object and get current position of array. Find way to
-%locate different [m objects.
-q = QMC('QMC_conf.txt');
-getCurrentPosition(q); %update 6DOF
 arrayLoc1 = sixDOF(1:3); %in mm, so adjust
 arrayLoc2 = sixDOF(1:3);
 arrayLoc3 = sixDOF(1:3);
