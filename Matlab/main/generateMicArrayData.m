@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = generateMicArrayData(nodes, soundLocation, usedArray)
+function arrayData = generateMicArrayData(nodes, soundLocation, usedArray, samplerate)
 %% Generate a drone style wav recording
 [baseSound, fs] =   audioread('InputData/parrot_1.wav');
 baseSound = baseSound(:,2);
@@ -23,7 +23,10 @@ switch char(usedArray)
         type = 6;
 end  
 
-generateWavFile_DroneStyle(baseSound, fs, nodes, soundLocation, amplituteOffset, noisePM, radPattern, timeVar, type);
-
+tempData = generateWavFile_DroneStyle(baseSound, fs, nodes, soundLocation, amplituteOffset, noisePM, radPattern, timeVar, type);
+secDim = size(tempData,1)/samplerate;
+arrayData = zeros(samplerate, secDim, size(nodes,1));
+for i = 1: size(nodes,1)
+    arrayData(:,:,i) = reshape(tempData(:,i), samplerate, secDim);
 end
-
+end

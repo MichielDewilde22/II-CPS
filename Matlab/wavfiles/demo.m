@@ -1,6 +1,6 @@
 %% Generate a bat like wav recording
 
- 
+ if false
   % - length               : Capture length in seconds
   length = 1;
   % - Fs                   : Sampling frequency in Hertz
@@ -25,8 +25,8 @@
   type = 0;
 
  output=  generateWavFile_BatStyle(length, fs, nodes, soundLocation, pulseFreqVar, pulseAmplituteOffset, noisePM, pulseTimeVar, radPattern, timeVar, type);
+ end
 
-if false
 %% Generate a drone style wav recording
 [baseSound, fs] =   audioread('InputData/parrot_1.wav');
 baseSound = baseSound(:,2);
@@ -34,7 +34,8 @@ baseSound = baseSound(:,2);
 %baseSound = resample(baseSound(:,2), Fs, fs);
 
 % - nodes                : Matrix of node location and orientations (Nx6) [X, Y, Z, rX, rY, rZ]
-nodes = [0, 0, 0, 0, 0, 0];
+nodes = [0, 0, 0, 0, 0, 0;...
+         1, 1 ,1, 0, 0, 0];
 % - soundLocation        : Matrix of sound locations (Mx3) [X, Y, Z]
 
 % azimuth sweep from 90 (left) to -90 (right) at elevation 0
@@ -61,7 +62,7 @@ type = 1;
 output = generateWavFile_DroneStyle(baseSound, fs, nodes, soundLocation, amplituteOffset, noisePM, radPattern, timeVar, type);
 
 
-end
+
 %% Archive 
 % Center
 %soundLocation = [1, 0, 0];
