@@ -1,4 +1,4 @@
-function y = generateWavFile_DroneStyle(baseSound, fs, nodes, soundLocation, amplituteOffset, noisePM, radPattern, timeVar, type)
+function y = generateWavFile(length, fs, nodes, soundLocation, pulseFreqVar, pulseAmplituteOffset, noisePM, pulseTimeVar, radPattern, timeVar, type)
   % Create 6 wav channels per node
   % Data is a wav file of 5 microphone captures and the sync channel
   % Create the big y variable here
@@ -26,9 +26,9 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, soundLocation, amp
 
   %% Generate
 
-  n_channels = size(nodeToX([0 0 0 0 0 0 type]), 2)+1;         % Number of channels
-  length = size(baseSound, 1);                                 % sound length in samples
-  y = zeros(length, n_channels, size(nodes, 1));               % Create empty 3D y matrix dim(samples, channels, nodes)
+  n_channel = 5;                                               % Number of channels
+  
+  y = zeros(length*fs, n_channel, size(nodes, 1));             % Create empty 3D y matrix dim(samples, channels, nodes)
 
   if size(soundLocation,2) == 3
     fprintf('Warning: This is the old style of sound source without direction, the radiation pattern will not be applied\n');
@@ -39,31 +39,59 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, soundLocation, amp
     warning('Invalid format for sound source location, should be [X, 6]');
     return;
   end
-  
-  % Indexes for adding each part of the sound to the capture
-  soundIdxs = round(linspace(1, size(baseSound, 1), size(soundLocation, 1)+1));
-  
-  %timeVar = timeVar*betarnd(5,5,1,size(nodes, 1));             % beta random of time var (between 0 and timeVar), one value per node, equal accross all sounds
+
+  % Equally distribute n sounds in capture (not too close to endpoints)
+  pulse_offsets = linspace(1, length * fs, size(soundLocation,1)+2);
+  pulse_offsets = pulse_offsets(2:end-1);
+
+  %aa = nan(9,5);
+
+  timeVar = timeVar*betarnd(5,5,1,size(nodes, 1));             % beta random of time var (between 0 and timeVar), one value per node, equal accross all sounds
   for i_sound = 1:size(soundLocation, 1)                       % For all sounds
     for i_node = 1:size(nodes, 1)                              % For every node (3rd dimension)
-      nodeX = nodeToX([nodes(i_node, :), type]);
+      nodeX = nodeToX([nodes(i_node, :), 1]);
       %nodeVm = mean(nodeX,2);
-      y_i = zeros(length, n_channels);                       % 2D y matrix (samples, channels) as it would be captured on the device
-      for i_mic=1:n_channels-1                                  % For every channel
+      y_i = zeros(length*fs, n_channel);                       % 2D y matrix (samples, channels) as it would be captured on the device
+      for i_mic=1:n_channel                                    % For every channel
         distSoundMic = norm(soundLocation(i_sound,1:3) - nodeX(:,i_mic)',2); % Distance from sound to this microphone
         distDiff = round(fs * (-distSoundMic)/C);              % Num samples from vm to this mic
+
+        %aa(i_sound, i_mic) = distDiff;
+
+        f_start  = 60e3;                                       % Pulse start frequency in Hertz
+        f_start = round(normrnd(f_start,pulseFreqVar,1,1));    % Add variation
+        f_end    = 20e3;                                       % Pulse end frequency in Hertz
+        f_end = round(normrnd(f_end,pulseFreqVar,1,1));        % Add variation
+
+        pulseLength = 0.003;                                   % Pulse length in seconds
+        dur      = pulseLength*1000;                           % Pulse length in ms
+        ampl     = 1;                                          % Pulse amplitute in volts
+        winpct   = 10;                                         %
+        pulse = rdc(fm_sweep(f_start, f_end, fs, dur, ampl, winpct)); % Create fm sweep pulse
+        pulse = pulse(1:end-1)';                               % Remove last sample
         
+
         % Create capture
         % Initialize as vector of ones
         % Multiply by ampl offset
         % Add random noise between +- noisePM
-        capture = amplituteOffset * ones(length,1) + (rand(length,1)*2*noisePM)-noisePM; 
-        capture = capture + baseSound;
-        
-        % Shift basesound by time difference
-        %fprintf('%f\n', distDiff)
-        capture_A = capture(end+distDiff+1:end);
-        capture = [capture_A; capture(1:end+distDiff)];
+        capture = pulseAmplituteOffset * ones(length*fs,1) + (rand(length*fs,1)*2*noisePM)-noisePM; 
+
+        % Add pulse to capture
+        % By adding, the ampl noise is kept
+        % Shift the pulse based on pulse time var
+        % The mean is also shifted according to the distance difference (mic and vm)
+        %meanvar = (length*Fs)/2;
+        meanvar = 0;
+        meanvar = meanvar - distDiff;
+        var = fs*pulseTimeVar;
+        shift = round(normrnd(meanvar,var,1,1) + pulse_offsets(i_sound));
+
+        %pulseSamples = (pulseLength * fs)-1;
+        pulseSamples = size(pulse,1) -1;
+
+        %capture(shift:shift+pulseSamples) = capture(meanvar:meanvar+pulseSamples) + pulse;
+        capture(shift:shift+pulseSamples) = capture(shift:shift+pulseSamples) + pulse;
 
         if doRadPattern
           % a is the angle of departure of the sound relative to the microphone
@@ -97,12 +125,10 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, soundLocation, amp
           zlim([min([0, nodeX(3,i_mic), soundLocation(i_sound,3), nodeX(3,i_mic)-soundLocation(i_sound,3)])-1, max([0, nodeX(3,i_mic), soundLocation(i_sound,3), nodeX(3,i_mic)-soundLocation(i_sound,3)])+1])
           %}
         end
-        
-        y_i(soundIdxs(i_sound) : soundIdxs(i_sound+1),i_mic) = capture(soundIdxs(i_sound) : soundIdxs(i_sound+1));
-        plot(y_i)
+        y_i(:,i_mic) = capture;
       end
-      addSamples = amplituteOffset * ones(floor(timeVar(i_node)*fs),1) + (rand(floor(timeVar(i_node)*fs),1)*2*noisePM)-noisePM;
-      y_i = [y_i(size(addSamples,1)+1:end,:); repmat(addSamples, [1, n_channels])]; % Cut off some samples at beginning of capture and add random noise to the rest
+      addSamples = pulseAmplituteOffset * ones(floor(timeVar(i_node)*fs),1) + (rand(floor(timeVar(i_node)*fs),1)*2*noisePM)-noisePM;
+      y_i = [y_i(size(addSamples,1)+1:end,:); repmat(addSamples, [1, n_channel])]; % Cut off some samples at beginning of capture and add random noise to the rest
       %y(:,:,i_nodes, i_sound) = y_i;
 
 
@@ -112,37 +138,13 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, soundLocation, amp
 
     end
   end
-  
-  % Add sync channel
-  % The sync value toggles 1 and 0 for a random duration between s1 and s2 samples
-  s1 = 100;
-  s2 = 6000;
-  sync = zeros(2*length,1);
-  syncVal = 0;
-  rand_ctr = 0;
-  for i_sample=1:2*length*size(soundLocation, 1)            % For all samples (twice because of time var offsets)
-    if rand_ctr == 0                                           % If random counter reached zero 
-      rand_ctr = floor(s1+s2*rand(1,1));                       % New random counter
-      syncVal = ~syncVal;                                      % Toggle value
-    else                                                       % Random counter has not yet reached zero
-      rand_ctr = rand_ctr - 1;                                 % Decrement counter
-    end                                                        % 
-    sync(i_sample) = syncVal;                                  % Write syncval
-  end
-  sync = 3.6*sync-1.8;
-  for i_node = 1:size(nodes, 1)
-    %i_tmp = i_tmp+1
-    i_sync = sync(((i_sound-1) * (length)) + 1 + floor(timeVar(i_node)*fs) : (i_sound) * (length) + floor(timeVar(i_node)*fs));
-    y(:,6,i_node) = i_sync;
-  end
 
   if size(y,4) ~= 1
     error('4D y matrix is deprecated');
   end
 
   %% Save to file 
-  %dirName = sprintf('Data_%s', datestr(now,'mm-dd-yyyy HH-MM'));
-  dirName = sprintf('Data_el_sweep_L2R_elevation_0');
+  dirName = datestr(now,'mm-dd-yyyy HH-MM')
 
   mkdir(dirName)
   
@@ -150,7 +152,7 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, soundLocation, amp
     nodeDir = [dirName '/Node_' sprintf('%d', i_node)];
     mkdir(nodeDir);
     wavData = y(:,:,i_node);
-    wavData = wavData ./ (1.1*max(max(wavData)));
+    wavData = wavData ./ (0.01*max(max(wavData)));
     audiowrite([nodeDir '/capture.wav'], wavData, fs);
   end
   save([dirName '/node_6d'], 'nodes');

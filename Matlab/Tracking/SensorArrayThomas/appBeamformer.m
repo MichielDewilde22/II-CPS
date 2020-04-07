@@ -20,7 +20,7 @@ function [POWER] = appBeamformer(domain, band, data, A, angles, algorithm, senso
                     POWER = sum(abs(POWER));
                     return
                 case 'Frequency domain'
-                    %Hint: you should do something here
+                  
             end
             
         case 'Narrow'

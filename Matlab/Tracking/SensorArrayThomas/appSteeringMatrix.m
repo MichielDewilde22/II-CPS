@@ -17,8 +17,7 @@ switch char(band)
                             A(micIt,freqIt,angleIt) = exp(-2*pi*1i* ((PhiX + PhiY) / lambda));
                         end
                     end
-                 end
-                    
+                end                   
         end
             case 'Time domain'
                 [A, ~, ~ ] = azel_2_delayints( -angles(1,:), -angles(2,:), coord, sampleRate );

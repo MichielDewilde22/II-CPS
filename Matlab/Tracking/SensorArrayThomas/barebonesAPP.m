@@ -183,5 +183,7 @@ end
 fprintf('Night night\n');
 
 function spectrum = beamform(data, app) 
+    tic
     spectrum = appBeamformer(app.beamDomain, app.beamBand, data, app.steeringMatrix, app.angles, app.algorithm, app.array, app.spatialSmoothing);
+    toc
 end
