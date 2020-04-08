@@ -50,7 +50,7 @@ app.v = 343;
 app.L = 22500; 
 
 % specify which data set to use
-savedDataPath = 'SavedEScape1.mat';
+
 
 %% 2) GENERATING BEAMFORMING ANGLES
 % This code generates 2 x 251 angles (azimuth & elevation) between -90 and
@@ -67,7 +67,7 @@ app.angles = rad2deg(app.angles); % angles used for beamforming
 fprintf('3) Loading Data \n')
 
 % loading microphone data
-load(savedDataPath);
+
 
 %% 4) LOADING MICROPHONE ARRAY POSITION DATA
 fprintf('4) Loading microphone array position data \n')
