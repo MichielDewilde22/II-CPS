@@ -2,8 +2,6 @@ function arrayData = generateMicArrayData(nodes, soundLocation, usedArray, sampl
 %% Generate a drone style wav recording
 [baseSound, fs] = audioread('InputData/parrot_1.wav');
 baseSound = baseSound(:,2);
-%Fs = ceil(fs/10.2041);     % Resample at 44100 kHz
-%baseSound = resample(baseSound(:,2), Fs, fs);
 
 % - pulseFreqVar         : Normal distributed deviation of start and end frequency in Hz
 pulseFreqVar = 1;
