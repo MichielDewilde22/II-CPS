@@ -18,8 +18,5 @@ else
 %     for cnt = 1:n_ch
 %         sig_in(cnt,:) = sig_in(cnt,:) - mean(sig_in(cnt,:));
 %     end;
-%     sig_out = sig_in;    
-
-    
-    
-end;
+%     sig_out = sig_in;
+end
