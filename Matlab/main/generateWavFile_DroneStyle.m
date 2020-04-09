@@ -1,4 +1,5 @@
-function y = generateWavFile_DroneStyle(baseSound, fs, nodes, soundLocation, amplituteOffset, noisePM, radPattern, timeVar, type)
+function y = generateWavFile_DroneStyle(baseSound, fs, nodes, ...
+    soundLocation, amplituteOffset, noisePM, radPattern, timeVar, type)
   % Create 6 wav channels per node
   % Data is a wav file of 5 microphone captures and the sync channel
   % Create the big y variable here
@@ -25,7 +26,6 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, soundLocation, amp
   C = 343; % Speed of sound
 
   %% Generate
-
   n_channels = size(nodeToX([0 0 0 0 0 0 type]), 2)+1;         % Number of channels
   length = size(baseSound, 1);                                 % sound length in samples
   y = zeros(length, n_channels, size(nodes, 1));               % Create empty 3D y matrix dim(samples, channels, nodes)
@@ -98,16 +98,17 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, soundLocation, amp
           %}
         end
         
-        y_i(soundIdxs(i_sound) : soundIdxs(i_sound+1),i_mic) = capture(soundIdxs(i_sound) : soundIdxs(i_sound+1));
+        y_i(soundIdxs(i_sound) : soundIdxs(i_sound+1),i_mic) = ...
+            capture(soundIdxs(i_sound) : soundIdxs(i_sound+1));
         plot(y_i)
+        
       end
-      addSamples = amplituteOffset * ones(floor(timeVar(i_node)*fs),1) + (rand(floor(timeVar(i_node)*fs),1)*2*noisePM)-noisePM;
-      y_i = [y_i(size(addSamples,1)+1:end,:); repmat(addSamples, [1, n_channels])]; % Cut off some samples at beginning of capture and add random noise to the rest
+      addSamples = amplituteOffset * ones(floor(timeVar(i_node)*fs),1) ...
+          + (rand(floor(timeVar(i_node)*fs),1)*2*noisePM)-noisePM;
+      
+      % Cut off some samples at beginning of capture and add random noise to the rest
+      y_i = [y_i(size(addSamples,1)+1:end,:); repmat(addSamples, [1, n_channels])]; 
       %y(:,:,i_nodes, i_sound) = y_i;
-
-
-
-
       y(:,:,i_node) = y(:,:,i_node) + y_i;
 
     end
