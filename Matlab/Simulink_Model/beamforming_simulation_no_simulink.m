@@ -22,7 +22,7 @@ end
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
 
-GENERATE_MIC_DATA = 0; % 0 if it is already genenerated.
+GENERATE_MIC_DATA = 1; % 0 if it is already genenerated.
 PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 
 %% 1) ROOM DIMENSIONS
@@ -35,13 +35,11 @@ room_dimensions = [5 5 2.5];
 
 % Position of the mic arrays is expressed as 6-DOF data. The nodes are 
 % positioned in a triangle on the floor.
-% position_array_1 = [1 1 0 0 -90 0];
-% position_array_2 = [1 4 0 0 -90 0];
-% position_array_3 = [4 1 0 0 -90 0];
-
-position_array_1 = [0 1 0 0 -90 0];
-position_array_2 = [0 2.5 0 0 -90 0];
-position_array_3 = [0 4 0 0 -90 0];
+% Important notice: the arrays only detect in a forward derection.
+% Therefore we turn them -90 degrees so that they lay flat on the floor. 
+position_array_1 = [1.5 1.5 0 0 -90 0];
+position_array_2 = [1.5 3.5 0 0 -90 0];
+position_array_3 = [3.5 2.5 0 0 -90 0];
 position_nodes = [position_array_1; position_array_2; position_array_3];
 
 %% 2) BEAMFORMING PARAMETERS
@@ -77,11 +75,16 @@ angles = [azimuth(indicesHalfShere); elevation(indicesHalfShere)];
 angles = rad2deg(angles); % angles used for beamforming
 
 % location of the sound
-n_locations = 100;
+path_data = load('Model_Data\mosquitoopath_X_Y_Z_5_5_2.5.mat');
+path_x = path_data.data{1}.Values.Data;
+path_y = path_data.data{2}.Values.Data;
+path_z = path_data.data{3}.Values.Data + 0.2;
+
+n_locations = size(path_x,1);
 sound_location = zeros(n_locations, 3);
-sound_location(:,1) = ones(1,n_locations).*2;
-sound_location(:,2) = linspace(0,5,n_locations);
-sound_location(:,3) = ones(1,n_locations).*1;
+sound_location(:,1) = path_x;
+sound_location(:,2) = path_y;
+sound_location(:,3) = path_z;
 
 % creating frequency bins for steering matrix & beamforming algorithm
 n_fft_bins = 101;
@@ -92,13 +95,12 @@ used_freqs = ((freqs_fft >= freq_min)&(freqs_fft <= freq_max));
 first_bin = find(used_freqs, 1, 'first');
 last_bin = find(used_freqs, 1, 'last');
 
+batch_size = 500;
+
 % creating steering matrix
 steering_matrix_freqs = freqs_fft(first_bin:last_bin);
 steering_matrix = GenerateSteeringMatrix(mic_coordinates, angles, ...
     steering_matrix_freqs);
-
-% calculating the number of samples for one beamforming step
-audio.samples_per_batch = 500;
 
 %% 3) GENERATING MICROPHONE DATA
 % We only need to generate the data if it is not already stored in the
@@ -112,10 +114,6 @@ if GENERATE_MIC_DATA
     
     [base_sound, fs] = audioread(audio.filename);
     
-    
-    % - pulseFreqVar       : Normal distributed deviation of start and 
-    % end frequency in Hz
-    pulseFreqVar = 1;
     % - amplituteOffset    : Amplitute offset in volts
     amplitudeOffset = 0;
     % - noisePM            : Plus or minus offset of noise amplitude
@@ -124,33 +122,26 @@ if GENERATE_MIC_DATA
     timeVar = [0 0 0]; % create offset for each node
     
     
-    GenerateMicData_V2(base_sound, fs, position_nodes, ...
+    GenerateMicData_V3(base_sound, fs, position_nodes, ...
         sound_location, amplitudeOffset, noisePM, timeVar, ...
-        array_type, audio.samples_per_batch);
+        array_type);
 end
-
 %% 4) LOADING MICROPHONE DATA
-data_cell = load('Model_Data/Microphone_Data/data_array_1/capture.mat');
-data_large_1 = data_cell.storeData;
 
-data_cell = load('Model_Data/Microphone_Data/data_array_2/capture.mat');
-data_large_2 = data_cell.storeData;
-
-data_cell = load('Model_Data/Microphone_Data/data_array_3/capture.mat');
-data_large_3 = data_cell.storeData;
-
+data_large_1 = audioread('Model_Data/Microphone_Data/data_array_1/capture.wav');
+data_large_2 = audioread('Model_Data/Microphone_Data/data_array_2/capture.wav');
+data_large_3 = audioread('Model_Data/Microphone_Data/data_array_3/capture.wav');
 print_counter = 501;
 
+n_batch = ceil(audio.n_samples/batch_size);
+intersections = zeros(n_batch, 3);
+locations = zeros(n_batch, 3);
+locations_per_batch = n_locations/n_batch;
 
-n_loops = size(data_large_1,1);
-intersections = zeros(n_loops, 3);
-locations = zeros(n_loops, 3);
-locations_per_loop = n_locations/n_loops;
-
-for index = 1:n_loops
-    current_data_1 = squeeze(data_large_1(index,:,:)).';
-    current_data_2 = squeeze(data_large_2(index,:,:)).';
-    current_data_3 = squeeze(data_large_3(index,:,:)).';
+for i_batch = 1:n_batch
+    current_data_1 = GetBatch(batch_size,i_batch,data_large_1);
+    current_data_2 = GetBatch(batch_size,i_batch,data_large_2);
+    current_data_3 = GetBatch(batch_size,i_batch,data_large_3);
 
     power1 = BeamformData(current_data_1, steering_matrix, n_fft_bins, first_bin, last_bin, angles);
     power2 = BeamformData(current_data_2, steering_matrix, n_fft_bins, first_bin, last_bin, angles);
@@ -162,23 +153,18 @@ for index = 1:n_loops
     dir2_d = [angles(1,max_index) angles(2,max_index)];
     [~, max_index] = max(power3);
     dir3_d = [angles(1,max_index) angles(2,max_index)];
-   
     
-    
-    dir1 = deg2rad(dir1_d);
-    dir2 = deg2rad(dir2_d);
-    dir3 = deg2rad(dir3_d);
-    directions = [dir1; dir2; dir3];
+    directions = [dir1_d; dir2_d; dir3_d];
     
     vectors = AnglesToVectors(position_nodes, directions);
     [x,y,z] = VectorsToIntersection(vectors);
-    intersections(index,:) = [x,y,z];
-    loc_index = ceil(index*locations_per_loop);
-    locations(index,:) = [sound_location(loc_index,1), sound_location(loc_index,2), sound_location(loc_index,3)];
+    intersections(i_batch,:) = [x,y,z];
+    loc_index = ceil(i_batch*locations_per_batch);
+    locations(i_batch,:) = [sound_location(loc_index,1), sound_location(loc_index,2), sound_location(loc_index,3)];
     
     if print_counter == 1000
         print_counter = 0;
-        fprintf("Angles of batch: "+index+"\n");
+        fprintf("Angles of batch: "+i_batch+"\n");
         
         figure;
         hold on; 
@@ -187,9 +173,9 @@ for index = 1:n_loops
         ylabel('y'); 
         zlabel('z'); 
         axis equal;
-        xlim([0 room_dimensions(1)+2]);
-        ylim([0 room_dimensions(2)+2]);
-        zlim([0 room_dimensions(3)+2]);
+        xlim([0 room_dimensions(1)]);
+        ylim([0 room_dimensions(2)]);
+        zlim([0 room_dimensions(3)]);
         % all nodes
         scatter3(position_nodes(:,1), position_nodes(:,2),position_nodes(:,3), 'MarkerFaceColor', [1 0 0]);
         % direction of nodes
@@ -199,6 +185,10 @@ for index = 1:n_loops
         % current point
         scatter3(sound_location(loc_index,1), sound_location(loc_index,2), sound_location(loc_index,3), 'MarkerFaceColor', [0 0 1]);
         view(20,20);
+        current_difference = norm(locations(i_batch,:) - intersections(i_batch,:));
+        error_string = "Difference = "+string(current_difference)+" meter.";
+        title(error_string);
+        legend('Position Nodes', 'Directions', 'calculated point', 'actual point');
     end
     print_counter = print_counter + 1;
 end
@@ -217,9 +207,9 @@ if PLOT_ROOM
     ylabel('y'); 
     zlabel('z'); 
     axis equal;
-    xlim([0 room_dimensions(1)+2]);
-    ylim([0 room_dimensions(2)+2]);
-    zlim([0 room_dimensions(3)+2]);
+    xlim([0 room_dimensions(1)]);
+    ylim([0 room_dimensions(2)]);
+    zlim([0 room_dimensions(3)]);
     
     % plotting path mosquito
     scatter3(sound_location(:,1), sound_location(:,2), sound_location(:,3), 'MarkerFaceColor', [0 0 1]);
@@ -227,11 +217,11 @@ if PLOT_ROOM
     % plotting microphone arrays
     for node_i = 1:size(position_nodes,1)
         array = NodePosToArrayPos(position_nodes(node_i,:), array_type);
-        scatter3(array(1,:), array(2,:), array(3,:), 'MarkerFaceColor', [0 0 1]);
+        scatter3(array(1,:), array(2,:), array(3,:), 'MarkerFaceColor', [1 0 0]);
     end
     
     % plotting calculated points of mosquito
-    scatter3(intersections(:,1), intersections(:,2),intersections(:,3), 'MarkerFaceColor', [0 1 0]);
+    scatter3(intersections(:,1), intersections(:,2),intersections(:,3), 'MarkerFaceColor', [0 1 0], 'Marker','.');
     
     % plot camera
     % plot laser
@@ -240,9 +230,9 @@ if PLOT_ROOM
 end
 
 %% 8) calculating average error
-for index 1:n_loops
-    error_beam = (locations(index,:) - intersections(index,:));
-error_beams = norm(locations - intersections);
-mean_error = mean(error_beams);
-fprintf('The mean error was: '+string(mean_error));
-
+error_beams = zeros(n_batch, 1);
+for i_batch = 1:n_batch
+    error_beams(i_batch) = norm(locations(i_batch,:) - intersections(i_batch,:));
+end
+mean_error = median(error_beams);
+fprintf('The error median was: '+string(mean_error)+' meters.\n');

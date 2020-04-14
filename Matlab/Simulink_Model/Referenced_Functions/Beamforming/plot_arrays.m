@@ -1,6 +1,6 @@
 % Position of the mic arrays is expressed as 6-DOF data. The nodes are 
 % positioned in a triangle on the floor.
-position_array_1 = [0 1 0 0 -90 0];
+position_array_1 = [0 1 0 0 0 0];
 position_array_2 = [0 2.5 0 0 0 0];
 position_array_3 = [0 4 0 0 0 0];
 position_nodes = [position_array_1; position_array_2; position_array_3];
