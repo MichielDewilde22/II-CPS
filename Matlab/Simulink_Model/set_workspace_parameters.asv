@@ -17,7 +17,6 @@ if ~strcmp(current_folder_name, "Simulink_Model")
         "run the script correctly!\nScript was aborted...\n");
     return
 end
-
 % Adding folders to path
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
@@ -147,10 +146,7 @@ data_array_3 = audioread('Model_Data/Microphone_Data/data_array_3/capture.wav');
 
 %% 6) HUMAN DETECTION SYSTEM
 HDS.FOV = 1.0856; % Camera field of view
-HDS.camera_orientation = [0 1 0 -2.3562];
-HDS.camera_position = pos.camera(1:3);
-HDS.h_res = 640;
-HDS.v_res = 480;
+HDS.camera_position
 
 %% 7) PLOTTING ROOM
 if PLOT_ROOM
