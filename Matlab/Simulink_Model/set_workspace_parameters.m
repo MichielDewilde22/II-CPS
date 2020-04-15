@@ -18,6 +18,9 @@ if ~strcmp(current_folder_name, "Simulink_Model")
     return
 end
 
+% printing progress
+fprintf("Setting workspace variables...\n");
+
 % Adding folders to path
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
@@ -29,6 +32,9 @@ PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 clear dirs folder current_folder_name;
 
 %% 1) ROOM SIZE & POSITIONS
+% printing progress
+fprintf("Loading room/position data...\n");
+
 % For the room dimensions we assume cartesian coordinates in the following
 % form: [X Y Z]. X = length, Y = width, Z = height. The units are meters. 
 % ORIGIN/REFERENCE POINT: [0 0 0]
@@ -62,6 +68,9 @@ pos.sound_locations(:,3) = path_data.data{3}.Values.Data;
 clear path_data;
 
 %% 2) BEAMFORMING PARAMETERS
+% printing progress
+fprintf("Loading beamforming parameters...\n");
+
 % Positions of the microphones of one array.
 load('mic_pos_sonar_stm32_dense.mat'); % dimensions are in millimeter
 BF.mic_coordinates = [ mic_pos_final_pos/1000 zeros( 32,1 ) ]; % in meter
@@ -111,9 +120,14 @@ clear points audio_info azimuths elevations indicesHalfShere ...
     mic_pos_final_pos;
 
 %% 3) GENERATING MICROPHONE DATA
+
+
 % We only need to generate the data if it is not already stored in the
 % folder "Model_Data > Microphone_Data > data_array_X". 
 if GENERATE_MIC_DATA
+    % printing progress
+    fprintf("Generating Microphone Data for beamforming ...\n");
+    
     % Check if the right folder exists (and make it if not so)
     if ~exist('Model_Data/Microphone_Data', 'dir')
        mkdir Model_Data Microphone_Data;
@@ -138,6 +152,8 @@ if GENERATE_MIC_DATA
     clear base_sound fs amplitudeOffset noisePM timeVar;
 end
 %% 4) LOADING MICROPHONE DATA
+% printing progress
+fprintf("Loading beamforming data...\n");
 data_array_1 = audioread('Model_Data/Microphone_Data/data_array_1/capture.wav');
 data_array_2 = audioread('Model_Data/Microphone_Data/data_array_2/capture.wav');
 data_array_3 = audioread('Model_Data/Microphone_Data/data_array_3/capture.wav');
@@ -146,6 +162,8 @@ data_array_3 = audioread('Model_Data/Microphone_Data/data_array_3/capture.wav');
 
 
 %% 6) HUMAN DETECTION SYSTEM
+% printing progress
+fprintf("Loading Human Detection paramaters...\n");
 HDS.FOV = 1.0856; % Camera field of view
 HDS.camera_orientation = [0 1 0 -2.3562];
 HDS.camera_position = pos.camera(1:3);
@@ -153,6 +171,8 @@ HDS.h_res = 640;
 HDS.v_res = 480;
 
 %% 7) PLOTTING ROOM
+% printing progress
+fprintf("Plotting room ...\n");
 if PLOT_ROOM
     figure;
     hold on; 
@@ -189,3 +209,6 @@ end
 
 % clearing workspace
 clear node_i array;
+
+% printing progress
+fprintf("Workspace variables set! You can run the model now. \n");
