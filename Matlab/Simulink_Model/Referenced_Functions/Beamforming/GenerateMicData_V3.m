@@ -1,4 +1,4 @@
-function y = GenerateMicData_V3(baseSound, fs, position_nodes, ...
+function GenerateMicData_V3(baseSound, fs, position_nodes, ...
     locations, amplituteOffset, noisePM, timeVar, array_type)
 % Create 6 wav channels per node
 % Data is a wav file of 5 microphone captures and the sync channel
@@ -16,11 +16,7 @@ function y = GenerateMicData_V3(baseSound, fs, position_nodes, ...
 % - radPattern           : Scattered interpolant of the radiation pattern
 % - timeVar              : Normal distributed offset in capture start
 %
-% Output
-% - y Big matrix (3 dimensions)
-%    d1: Samples
-%    d2: Channels
-%    d3: Nodes
+
 
 C = 343; % Speed of sound
 
