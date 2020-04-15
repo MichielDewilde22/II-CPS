@@ -22,7 +22,7 @@ end
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
 
-GENERATE_MIC_DATA = 1; % 0 if it is already genenerated.
+GENERATE_MIC_DATA = 0; % 0 if it is already genenerated.
 PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 
 %% 1) ROOM DIMENSIONS
@@ -34,7 +34,7 @@ PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 room_dimensions = [5 5 2.5]; 
 
 % Position of the mic arrays is expressed as 6-DOF data. The nodes are 
-% positioned in a triangle on the floor.
+% positioned in a triangle on the floor. (angles are in degrees)
 % Important notice: the arrays only detect in a forward derection.
 % Therefore we turn them -90 degrees so that they lay flat on the floor. 
 position_array_1 = [1.5 1.5 0 0 -90 0];
@@ -46,8 +46,7 @@ position_nodes = [position_array_1; position_array_2; position_array_3];
 % Positions of the microphones of one array.
 load('mic_pos_sonar_stm32_dense.mat'); % dimensions are in millimeter
 mic_coordinates = [ mic_pos_final_pos/1000 zeros( 32,1 ) ]; % in meter
-% used array type, 5 = dense array
-array_type = 5;
+array_type = 5; % used array type, 5 = dense array
 
 % Centering the microphone positions. We use the function "rdc.m" which was
 % originally intended to remove "DC" of signals. But it works... We use the
@@ -78,7 +77,7 @@ angles = rad2deg(angles); % angles used for beamforming
 path_data = load('Model_Data\mosquitoopath_X_Y_Z_5_5_2.5.mat');
 path_x = path_data.data{1}.Values.Data;
 path_y = path_data.data{2}.Values.Data;
-path_z = path_data.data{3}.Values.Data + 0.2;
+path_z = path_data.data{3}.Values.Data;
 
 n_locations = size(path_x,1);
 sound_location = zeros(n_locations, 3);
@@ -212,7 +211,7 @@ if PLOT_ROOM
     zlim([0 room_dimensions(3)]);
     
     % plotting path mosquito
-    scatter3(sound_location(:,1), sound_location(:,2), sound_location(:,3), 'MarkerFaceColor', [0 0 1]);
+    scatter3(sound_location(:,1), sound_location(:,2), sound_location(:,3), 'MarkerFaceColor', [0 0 1], 'Marker','.');
     
     % plotting microphone arrays
     for node_i = 1:size(position_nodes,1)
@@ -225,7 +224,7 @@ if PLOT_ROOM
     
     % plot camera
     % plot laser
-    legend('Sound Locations', 'Array Positions', 'Points');
+    legend('Path Mosquito', 'Array 1', 'Array 2', 'Array 3');
     view(20,20);
 end
 
