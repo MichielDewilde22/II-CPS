@@ -43,13 +43,31 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, ...
   % Indexes for adding each part of the sound to the capture
   soundIdxs = round(linspace(1, size(baseSound, 1), size(soundLocation, 1)+1));
   
+  % printing progress
+  tic;
+  n_iterations = size(nodes, 1)*(n_channels-1)*size(soundLocation, 1);
+  current_it = 0;
+  print_factor = floor(n_iterations/100);
+  print_it = 0;
+  total_progress_small = n_iterations/print_factor;
+  
   %timeVar = timeVar*betarnd(5,5,1,size(nodes, 1));             % beta random of time var (between 0 and timeVar), one value per node, equal accross all sounds
   for i_sound = 1:size(soundLocation, 1)                       % For all sounds
-    for i_node = 1:size(nodes, 1)                              % For every node (3rd dimension)
+    for i_node = 1:size(nodes, 1)
+      % For every node (3rd dimension)
       nodeX = nodeToX([nodes(i_node, :), type]);
       %nodeVm = mean(nodeX,2);
       y_i = zeros(length, n_channels);                       % 2D y matrix (samples, channels) as it would be captured on the device
       for i_mic=1:n_channels-1                                  % For every channel
+        % printing progress
+        print_it = print_it + 1;
+        if print_it == print_factor
+           print_it = 0;
+           current_it = current_it + 1;
+           it_string = "1/3: Channel generation progress: " + string(current_it) + " of "+ string(total_progress_small) + "\n";
+           fprintf(it_string);
+        end
+        
         distSoundMic = norm(soundLocation(i_sound,1:3) - nodeX(:,i_mic)',2); % Distance from sound to this microphone
         distDiff = round(fs * (-distSoundMic)/C);              % Num samples from vm to this mic
         
@@ -100,9 +118,10 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, ...
         
         y_i(soundIdxs(i_sound) : soundIdxs(i_sound+1),i_mic) = ...
             capture(soundIdxs(i_sound) : soundIdxs(i_sound+1));
-        plot(y_i)
+        % plot(y_i)
         
       end
+      
       addSamples = amplituteOffset * ones(floor(timeVar(i_node)*fs),1) ...
           + (rand(floor(timeVar(i_node)*fs),1)*2*noisePM)-noisePM;
       
@@ -114,6 +133,13 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, ...
     end
   end
   
+  % printing progress
+  n_iterations = 2*length*size(soundLocation, 1);
+  current_it = 0;
+  print_factor = floor(n_iterations/100);
+  print_it = 0;
+  total_progress_small = n_iterations/print_factor;
+  
   % Add sync channel
   % The sync value toggles 1 and 0 for a random duration between s1 and s2 samples
   s1 = 100;
@@ -121,7 +147,17 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, ...
   sync = zeros(2*length,1);
   syncVal = 0;
   rand_ctr = 0;
+  
   for i_sample=1:2*length*size(soundLocation, 1)            % For all samples (twice because of time var offsets)
+    % print progress
+    print_it = print_it + 1;
+    if print_it == print_factor
+       print_it = 0;
+       current_it = current_it + 1;
+       it_string = "2/3: Sync channel generation progress: " + string(current_it) + " of "+ string(total_progress_small) + "\n";
+       fprintf(it_string);
+    end
+    
     if rand_ctr == 0                                           % If random counter reached zero 
       rand_ctr = floor(s1+s2*rand(1,1));                       % New random counter
       syncVal = ~syncVal;                                      % Toggle value
@@ -146,6 +182,7 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, ...
   dirName = sprintf('Data_az_sweep_L2R_azimuth_0_100_dirs');
 
   mkdir(dirName)
+  fprintf("3/3: Saving data ... \n");
   
   for i_node = 1:size(nodes,1)
     nodeDir = [dirName '/Node_' sprintf('%d', i_node)];
@@ -161,5 +198,7 @@ function y = generateWavFile_DroneStyle(baseSound, fs, nodes, ...
   %mscatter3(soundLocation)
   %mscatter3(soundLocation(1,:))
   %mscatter3(100*nodeX)
-
+    
+  ex_time = toc/60;
+  fprintf("The execution time was: " + string(ex_time) + " minutes");
 end

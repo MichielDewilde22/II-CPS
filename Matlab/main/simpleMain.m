@@ -8,7 +8,7 @@ array3 = [1 1 80 0 0 0];
 nodes = [array1; array2; array3];
 usedArray = 'Dense';
 %usedArray = 'Sparse';
-samplerate = 22500;
+samplerate = 50000;
 
 beamformInit();
 % Ground truth X,Y,Z coordinates from path created by Robbe (Nx3)
