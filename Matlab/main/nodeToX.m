@@ -61,11 +61,11 @@ function X = nodeToX(node, relative)
     
   elseif (type == 5) %Dense Array
       mic_pos_final_pos = load('mic_pos_sonar_stm32_dense.mat');
-      X = [zeros(1,32); mic_pos_final_pos'];
+      X = [zeros(1,32); cell2mat(struct2cell(mic_pos_final_pos))'];
   
   elseif (type == 6) %Sparse Array
       mic_pos_final_pos = load('mic_pos_sonar_stm32.mat');
-      X = [zeros(1,32); mic_pos_final_pos'];      
+      X = [zeros(1,32); cell2mat(struct2cell(mic_pos_final_pos))'];      
   else 
     error('Unknown type')
   end

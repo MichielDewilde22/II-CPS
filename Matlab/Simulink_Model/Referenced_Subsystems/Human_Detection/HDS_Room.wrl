@@ -1,0 +1,104 @@
+#VRML V2.0 utf8
+
+DEF Wall1 Transform {
+  translation 0 1.25 -2.65
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "texture/Shingles.gif" 
+      }
+      material Material {
+      }
+    }
+    geometry Box {
+      size 5 2.5 0.3
+    }
+  }
+}
+DEF Wall2 Transform {
+  translation 2.65 1.25 0
+  rotation 0 1 0 1.5708
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "texture/Shingles.gif" 
+      }
+      material Material {
+      }
+    }
+    geometry Box {
+      size 5.6 2.5 0.3
+    }
+  }
+}
+PointLight {
+}
+DEF Camera Viewpoint {
+  position -2.4 1 -2.4
+  orientation 0 1 0 -2.3562
+  fieldOfView 1.08559
+}
+DEF Wall4 Transform {
+  translation -2.65 1.25 0
+  rotation 0 1 0 1.5708
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "texture/Shingles.gif" 
+      }
+      material Material {
+      }
+    }
+    geometry Box {
+      size 5.6 2.5 0.3
+    }
+  }
+}
+DEF Wall3 Transform {
+  translation 0 1.25 2.65
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "texture/Shingles.gif" 
+      }
+      material Material {
+      }
+    }
+    geometry Box {
+      size 5 2.5 0.3
+    }
+  }
+}
+DEF Floor Transform {
+  translation 0 -0.15 0
+  rotation 1 0 0 1.5708
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "texture/Wood_5.jpg" 
+      }
+      material Material {
+      }
+    }
+    geometry Box {
+      size 5.6 5.6 0.3
+    }
+  }
+}
+DEF Human Transform {
+  translation 1 0.9 2
+  scaleOrientation 0 1 0 0
+  rotation 0 0 0 0
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "texture/geel.png" 
+      }
+      material Material {
+      }
+    }
+    geometry Box {
+      size 0.75 1.8 0.5
+    }
+  }
+}
