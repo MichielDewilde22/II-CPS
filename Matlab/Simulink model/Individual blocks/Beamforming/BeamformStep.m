@@ -4,6 +4,6 @@ function Dir = BeamformStep(data,app)
    %interpolate data for plot
    interpolatorES = scatteredInterpolant( squeeze(app.angles(1,:))', squeeze(app.angles(2,:))', spectrum(:) );
    [V, I] = max(interpolatorES.Values);
-   Dir = interpolatorES.Points(118,:);
+   Dir = interpolatorES.Points(I,:);
 end
 
