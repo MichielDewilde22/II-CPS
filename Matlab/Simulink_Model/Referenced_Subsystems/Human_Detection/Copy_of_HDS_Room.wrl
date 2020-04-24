@@ -1,7 +1,7 @@
 #VRML V2.0 utf8
 
 DEF Wall1 Transform {
-  translation 2.5 -1.2 -0.15
+  translation 2.5 1.25 -0.15
   children Shape {
     appearance Appearance {
       texture ImageTexture {
@@ -16,7 +16,7 @@ DEF Wall1 Transform {
   }
 }
 DEF Wall2 Transform {
-  translation 5.15 -1.2 2.5
+  translation 5.15 1.25 2.5
   rotation 0 1 0 1.5708
   children Shape {
     appearance Appearance {
@@ -32,14 +32,15 @@ DEF Wall2 Transform {
   }
 }
 PointLight {
+  location 2.5 0 2.5
 }
 DEF Camera Viewpoint {
-  position 0.1 1 0.1
-  orientation 0 1 0 -2.3562
+  position 0.1 0.1 0.1
+  orientation 0 225 0 3.92699
   fieldOfView 1.08559
 }
 DEF Wall4 Transform {
-  translation -0.15 -1.2 2.5
+  translation -0.15 1.25 2.5
   rotation 0 1 0 1.5708
   children Shape {
     appearance Appearance {
@@ -55,7 +56,7 @@ DEF Wall4 Transform {
   }
 }
 DEF Wall3 Transform {
-  translation 2.5 -1.2 5.15
+  translation 2.5 1.25 5.15
   children Shape {
     appearance Appearance {
       texture ImageTexture {
@@ -102,25 +103,8 @@ DEF Human Transform {
     }
   }
 }
-DEF Camera_0001 Viewpoint {
+DEF Topdown Viewpoint {
   position 2.5 6 2.5
   orientation 1 0 0 -1.5708
   fieldOfView 1.08559
-}
-DEF Human_0001 Transform {
-  translation 0.1 0 0.1
-  scaleOrientation 0 1 0 0
-  rotation 0 0 0 0
-  children Shape {
-    appearance Appearance {
-      texture ImageTexture {
-        url "texture/geel.png" 
-      }
-      material Material {
-      }
-    }
-    geometry Box {
-      size 0.05 0.05 0.05
-    }
-  }
 }
