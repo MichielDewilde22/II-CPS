@@ -1,0 +1,112 @@
+#VRML V2.0 utf8
+
+DEF Wall1 Transform {
+  translation 5.4094 1.25 -1.8738
+  rotation 0 1 0 -0.785398
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "texture/Shingles.gif" 
+      }
+      material Material {
+      }
+    }
+    geometry Box {
+      size 5 2.5 0.3
+    }
+  }
+}
+DEF Wall2 Transform {
+  translation 5.4094 1.25 1.8738
+  rotation 0 1 0 0.785398
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "texture/Shingles.gif" 
+      }
+      material Material {
+      }
+    }
+    geometry Box {
+      size 5.6 2.5 0.3
+    }
+  }
+}
+PointLight {
+  location 3.5355 2 0
+}
+DEF Camera Viewpoint {
+  position 3.5355 0.1 3.39411
+  orientation 1 0 0 0.349066
+  fieldOfView 1.08559
+}
+DEF Wall4 Transform {
+  translation 1.6617 1.25 -1.8738
+  rotation 0 1 0 0.785398
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "texture/Shingles.gif" 
+      }
+      material Material {
+      }
+    }
+    geometry Box {
+      size 5.6 2.5 0.3
+    }
+  }
+}
+DEF Wall3 Transform {
+  translation 1.6617 1.25 1.8738
+  rotation 0 1 0 -0.785398
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "texture/Shingles.gif" 
+      }
+      material Material {
+      }
+    }
+    geometry Box {
+      size 5 2.5 0.3
+    }
+  }
+}
+DEF Floor Transform {
+  translation 3.5355 -0.15 0
+  rotation 0 1 0 0.7854
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "texture/Wood_5.jpg" 
+      }
+      material Material {
+      }
+    }
+    geometry Box {
+      size 5.6 0.3 5.6
+    }
+  }
+}
+DEF Human Transform {
+  translation 1 0.9 0
+  scaleOrientation 0 1 0 0
+  rotation 0 0 0 0
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "texture/geel.png" 
+      }
+      material Material {
+      }
+    }
+    geometry Box {
+      size 0.75 1.8 0.5
+    }
+  }
+}
+DEF Topdown Viewpoint {
+  position 3.5355 6 0
+  orientation 1 0 0 -1.5708
+  fieldOfView 1.08559
+}
