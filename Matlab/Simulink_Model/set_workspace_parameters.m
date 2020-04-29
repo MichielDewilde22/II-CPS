@@ -25,7 +25,7 @@ fprintf("Setting workspace variables...\n");
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
 
-GENERATE_MIC_DATA = 1; % 0 if it is already genenerated.
+GENERATE_MIC_DATA = 0; % 0 if it is already genenerated.
 PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 
 % clearing worskpace
@@ -53,7 +53,7 @@ pos.arrays = [pos.array_1; pos.array_2; pos.array_3];
 
 pos.camera = [0.1 0.1 0.1 0 0 0];
 
-pos.laser = [0.1 0.1 0 0 0];
+pos.laser = [0.1 0.1 0.1 0 0 0];
 
 % location of the sound
 path_data = load('Model_Data\mosquitoopath_X_Y_Z_5_5_2.5.mat');
@@ -159,8 +159,14 @@ data_array_2 = audioread('Model_Data/Microphone_Data/data_array_2/capture.wav');
 data_array_3 = audioread('Model_Data/Microphone_Data/data_array_3/capture.wav');
 
 %% 5) SERVOS & LASERS
+MCU_freq = 1000000;
+MCU_timerPrescaler = 16;
+MCU_timerDesiredFreq = 50;
 
+Servo_PWM_0_degree = 4.5;
+Servo_PWM_180_degree = 10.5;
 
+PF_delay = 0.05;
 %% 6) HUMAN DETECTION SYSTEM
 % printing progress
 fprintf("Loading Human Detection paramaters...\n");
