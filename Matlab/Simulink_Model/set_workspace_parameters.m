@@ -119,6 +119,8 @@ BF.steering_matrix = GenerateSteeringMatrix(BF.mic_coordinates, BF.angles, ...
 clear points audio_info azimuths elevations indicesHalfShere ...
     mic_pos_final_pos;
 
+BF.model_step = BF.batch_size*(1/BF.samp_rate);
+
 %% 3) GENERATING MICROPHONE DATA
 
 
@@ -166,13 +168,13 @@ MCU_timerDesiredFreq = 50;
 Servo_PWM_0_degree = 4.5;
 Servo_PWM_180_degree = 10.5;
 
-PF_delay = 0.05;
+PF_delay = 0.01;
 %% 6) HUMAN DETECTION SYSTEM
 % printing progress
 fprintf("Loading Human Detection paramaters...\n");
 HDS.FOV = 1.0856; % Camera field of view
-HDS.camera_orientation = [0 1 0 -2.3562];
-HDS.camera_position = pos.camera(1:3);
+HDS.camera_orientation = [1 0 0 deg2rad(20)];
+HDS.camera_position = [3.5355 0.1 3.3941];
 HDS.h_res = 640;
 HDS.v_res = 480;
 
