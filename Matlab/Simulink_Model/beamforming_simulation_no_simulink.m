@@ -22,7 +22,7 @@ end
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
 
-GENERATE_MIC_DATA = 0; % 0 if it is already genenerated.
+GENERATE_MIC_DATA = 1; % 0 if it is already genenerated.
 PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 
 %% 1) ROOM DIMENSIONS
@@ -44,52 +44,55 @@ position_nodes = [position_array_1; position_array_2; position_array_3];
 
 %% 2) BEAMFORMING PARAMETERS
 % Positions of the microphones of one array.
-load('mic_pos_sonar_stm32_dense.mat'); % dimensions are in millimeter
-mic_coordinates = [ mic_pos_final_pos/1000 zeros( 32,1 ) ]; % in meter
-array_type = 5; % used array type, 5 = dense array
-
+array_type = 7; % used array type, 7 = circle array of 8 mics
+mic_coordinates_zxy = NodePosToArrayPos([0 0 0 0 0 0], array_type).';
 % Centering the microphone positions. We use the function "rdc.m" which was
 % originally intended to remove "DC" of signals. But it works... We use the
 % centered microphone array position to generate the steering matrix. 
-mic_coordinates(:,1) = rdc(mic_coordinates(:,1));  
-mic_coordinates(:,2) = rdc(mic_coordinates(:,2));
-mic_coordinates(:,3) = rdc(mic_coordinates(:,3));
+mic_coordinates(:,1) = rdc(mic_coordinates_zxy(:,2));  
+mic_coordinates(:,2) = rdc(mic_coordinates_zxy(:,3));
+mic_coordinates(:,3) = rdc(mic_coordinates_zxy(:,1));
+
+clear mic_coordinates_zxy;
 
 % Loading audio properties
-audio.filename = 'sound_signal_20-22kHz.wav';
-info = audioinfo(audio.filename);
-audio.samp_rate = info.SampleRate; % normally 50kHz
-audio.n_samples = info.TotalSamples; 
-audio.duration = audio.n_samples/audio.samp_rate;
-audio.path = info.Filename;
+audio.filename = 'sound_signal_20-22kHz_high_fs.wav';
 
 % Beamforming constants
 v_sound = 343; % speed of sound in m/s
 
 % Creating matrix of angles to use in the beamforming algorithm
-points = eq_point_set(2,500);
+points = eq_point_set(2,8001);
 [azimuth,elevation,~] = cart2sph(points(1,:),points(2,:),points(3,:));
 indicesHalfShere = find(azimuth>-pi/2 & azimuth<pi/2);
 angles = [azimuth(indicesHalfShere); elevation(indicesHalfShere)];
 angles = rad2deg(angles); % angles used for beamforming
 
-% location of the sound
-path_data = load('Model_Data\mosquitoopath_X_Y_Z_5_5_2.5.mat');
-path_x = path_data.data{1}.Values.Data;
-path_y = path_data.data{2}.Values.Data;
-path_z = path_data.data{3}.Values.Data;
+% % location of the sound
+% path_data = load('Model_Data\mosquitoopath_X_Y_Z_5_5_2.5.mat');
+% path_x = path_data.data{1}.Values.Data;
+% path_y = path_data.data{2}.Values.Data;
+% path_z = path_data.data{3}.Values.Data;
+% 
+% n_locations = size(path_data.data{1}.Values.Data,1);
+% sound_location = zeros(n_locations, 3);
+% sound_locations(:,1) = path_data.data{1}.Values.Data;
+% sound_locations(:,2) = path_data.data{2}.Values.Data;
+% sound_locations(:,3) = path_data.data{3}.Values.Data;
 
-n_locations = size(path_x,1);
+path_data = load('Model_Data\mosquitoopath_X_Y_Z_5_5_2.5.mat');
+
+n_locations = size(path_data.data{1}.Values.Data,1);
 sound_location = zeros(n_locations, 3);
-sound_location(:,1) = path_x;
-sound_location(:,2) = path_y;
-sound_location(:,3) = path_z;
+sound_location(:,1) = path_data.data{1}.Values.Data;
+sound_location(:,2) = path_data.data{2}.Values.Data;
+sound_location(:,3) = path_data.data{3}.Values.Data;
 
 % creating frequency bins for steering matrix & beamforming algorithm
 n_fft_bins = 101;
 freq_min = 20000;
 freq_max = 22000;
-freqs_fft = linspace(0, audio.samp_rate, n_fft_bins);
+freqs_fft = linspace(0, 50000, n_fft_bins);
 used_freqs = ((freqs_fft >= freq_min)&(freqs_fft <= freq_max));
 first_bin = find(used_freqs, 1, 'first');
 last_bin = find(used_freqs, 1, 'last');
@@ -121,16 +124,25 @@ if GENERATE_MIC_DATA
     timeVar = [0 0 0]; % create offset for each node
     
     
-    GenerateMicData_V3(base_sound, fs, position_nodes, ...
+    GenerateMicData_V4(base_sound, fs, position_nodes, ...
         sound_location, amplitudeOffset, noisePM, timeVar, ...
-        array_type);
+        array_type, 10, 1);
 end
+
 %% 4) LOADING MICROPHONE DATA
 
 data_large_1 = audioread('Model_Data/Microphone_Data/data_array_1/capture.wav');
 data_large_2 = audioread('Model_Data/Microphone_Data/data_array_2/capture.wav');
 data_large_3 = audioread('Model_Data/Microphone_Data/data_array_3/capture.wav');
+
 print_counter = 501;
+
+
+info = audioinfo('Model_Data/Microphone_Data/data_array_1/capture.wav');
+audio.samp_rate = info.SampleRate; % normally 50kHz
+audio.n_samples = info.TotalSamples; 
+audio.duration = audio.n_samples/audio.samp_rate;
+audio.path = info.Filename;
 
 n_batch = ceil(audio.n_samples/batch_size);
 intersections = zeros(n_batch, 3);
