@@ -88,7 +88,7 @@ for i_loc = 1:n_locations
             if print_it == print_factor
                 print_it = 0;
                 current_it = current_it + 1;
-                it_string = "1/2: Data generation progress: " + string(current_it) + " of "+ string(total_progress) + "\n";
+                it_string = " - 1/3: Data generation progress: " + string(current_it) + " of "+ string(total_progress) + "\n";
                 fprintf(it_string);
             end
             print_it = print_it + 1;
@@ -108,15 +108,15 @@ for i_loc = 1:n_locations
 end
 
 %% Decimating
-fprintf("2/3: Decimating data ... \n");
+fprintf(" - 2/3: Decimating data ... \n");
 current=0;
 total = size(position_nodes,1)*n_channels;
-if (decimation_factor~=1)
+if (decimation_factor>1)
     y_dec = zeros(n_samples/decimation_factor,  n_channels, n_nodes);
     for i_node = 1:size(position_nodes, 1)
         for i_channel=1:n_channels
             current = current + 1;
-            it_string = "2/3: Decimating data "+string(current)+" of "+string(total)+"...\n";
+            it_string = " - 2/3: Decimating data "+string(current)+" of "+string(total)+"...\n";
             fprintf(it_string);
             y_dec(:,i_channel,i_node) = decimate(y(:,i_channel,i_node),decimation_factor);
         end
@@ -127,12 +127,12 @@ end
 
 %% Save to file 
 dirName = sprintf('Model_Data/Microphone_Data');
-fprintf("3/3: Saving data ... \n");
+fprintf(" - 3/3: Saving data ... \n");
 if write_audio_files
     n_node = size(position_nodes,1);
     for i_node = 1:n_node
         % printing progress
-        it_string = "3/3: Writing audio file "+string(i_node)+" of "+string(n_node)+"...\n";
+        it_string = " - 3/3: Writing audio file "+string(i_node)+" of "+string(n_node)+"...\n";
         fprintf(it_string);
 
         % saving data in wav file
@@ -147,5 +147,5 @@ if write_audio_files
 end
 
 ex_time = toc/60;
-fprintf("The execution time was: " + string(ex_time) + " minutes. \n");
+fprintf(" - FINISHED: The execution time was: " + string(ex_time) + " minutes. \n");
 end

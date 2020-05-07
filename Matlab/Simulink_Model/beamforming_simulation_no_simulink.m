@@ -22,7 +22,7 @@ end
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
 
-GENERATE_MIC_DATA = 1; % 0 if it is already genenerated.
+GENERATE_MIC_DATA = 0; % 0 if it is already genenerated.
 PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 
 %% 1) ROOM DIMENSIONS
@@ -124,7 +124,7 @@ if GENERATE_MIC_DATA
     timeVar = [0 0 0]; % create offset for each node
     
     
-    GenerateMicData_V4(base_sound, fs, position_nodes, ...
+    array_data = GenerateMicData_V4(base_sound, fs, position_nodes, ...
         sound_location, amplitudeOffset, noisePM, timeVar, ...
         array_type, 10, 1);
 end
@@ -134,6 +134,7 @@ end
 data_large_1 = audioread('Model_Data/Microphone_Data/data_array_1/capture.wav');
 data_large_2 = audioread('Model_Data/Microphone_Data/data_array_2/capture.wav');
 data_large_3 = audioread('Model_Data/Microphone_Data/data_array_3/capture.wav');
+size(data_large_1)
 
 print_counter = 501;
 
