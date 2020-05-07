@@ -10,7 +10,7 @@ clear;
 
 %% 1) setting paramaters
 length_seconds = 60; % length of audio signal
-fs = 50000; % sample frequency
+fs = 500000; % sample frequency
 freq_low = 20000;
 freq_high = 22000;
 
