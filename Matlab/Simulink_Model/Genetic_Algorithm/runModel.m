@@ -1,5 +1,5 @@
-function mean_error = runModel(position_nodes, audioPS, fs, n_steering_angles, sound_locations, room_dimensions, array_type, plot_room)
-fprintf("1: Started Model Simulation \n");
+function mean_error = runModel(x, audioPS, fs, n_steering_angles, sound_locations, room_dimensions, array_type, plot_room)
+% fprintf("1: Started Model Simulation \n");
 % Position of the mic arrays is expressed as 6-DOF data. The nodes are 
 % positioned in a triangle on the floor. (angles are in degrees)
 % Important notice: the arrays only detect in a forward derection.
@@ -8,9 +8,11 @@ fprintf("1: Started Model Simulation \n");
 % position_array_2 = [1.5 3.5 0 0 -90 0];
 % position_array_3 = [3.5 2.5 0 0 -90 0];
 % position_nodes = [position_array_1; position_array_2; position_array_3];
-% position_nodes = [x(1),x(2),x(3),rad2deg(x(4)),rad2deg(x(5)),rad2deg(x(6));
-%                     x(7),x(8),x(9),rad2deg(x(10)),rad2deg(x(11)),rad2deg(x(12));
-%                     x(13),x(14),x(15),rad2deg(x(16)),rad2deg(x(17)),rad2deg(x(18))];
+position_nodes = [x(1),0,x(2),0,180,-90; %stay on wall for y=0
+                    0,x(3),x(4),0,0,0; %stay on wall where x=0, standard rotation is in YZ plane
+                    x(5),x(6),0,0,-90,0]; %stay on on the floor, z=0
+
+
 
 %% 2) BEAMFORMING PARAMETERS
 mic_coordinates_zxy = NodePosToArrayPos([0 0 0 0 0 0], array_type).';
@@ -21,7 +23,6 @@ mic_coordinates(:,1) = rdc(mic_coordinates_zxy(:,2));
 mic_coordinates(:,2) = rdc(mic_coordinates_zxy(:,3));
 mic_coordinates(:,3) = rdc(mic_coordinates_zxy(:,1));
 
-fprintf("2: Generating steering matrix \n");
 decimation_factor = 10;
 % Creating matrix of angles to use in the beamforming algorithm
 points = eq_point_set(2,(n_steering_angles*2)+2);
@@ -48,7 +49,6 @@ steering_matrix = GenerateSteeringMatrix(mic_coordinates, angles, ...
     steering_matrix_freqs);
 
 %% 3) GENERATING MICROPHONE DATA
-fprintf("3: Generating Microphone Array Data \n");
 
 % - amplituteOffset    : Amplitute offset in volts
 amplitudeOffset = 0;
@@ -63,7 +63,6 @@ data = GenerateMicData_V4(audioPS, fs, position_nodes, ...
 
 
 %% 4) BEAMFORMING CALCULATIONS
-fprintf("4: Beamforming calculations \n");
 n_samples = size(data,1);
 n_batch = ceil(n_samples/batch_size);
 intersections = zeros(n_batch, 3);
@@ -76,8 +75,7 @@ data_array_2 = data(:,:,2);
 data_array_3 = data(:,:,3);
 
 for i_batch = 1:n_batch
-    progress_string = " - Calculating batch "+string(i_batch)+" from "+string(n_batch)+"\n";
-    fprintf(progress_string);
+%     fprintf(progress_string);
     current_data_1 = GetBatch(batch_size,i_batch,data_array_1);
     current_data_2 = GetBatch(batch_size,i_batch,data_array_2);
     current_data_3 = GetBatch(batch_size,i_batch,data_array_3);
@@ -103,7 +101,6 @@ for i_batch = 1:n_batch
 end
 
 %% 5) calculating average error
-fprintf("5: Calculating mean error. \n");
 error_beams = zeros(n_batch, 1);
 for i_batch = 1:n_batch
     error_beams(i_batch) = norm(locations(i_batch,:) - intersections(i_batch,:));
