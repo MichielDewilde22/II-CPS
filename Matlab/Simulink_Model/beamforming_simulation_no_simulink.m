@@ -22,7 +22,7 @@ end
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
 
-GENERATE_MIC_DATA = 0; % 0 if it is already genenerated.
+GENERATE_MIC_DATA = 1; % 0 if it is already genenerated.
 PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 
 %% 1) ROOM DIMENSIONS
@@ -37,10 +37,21 @@ room_dimensions = [5 5 2.5];
 % positioned in a triangle on the floor. (angles are in degrees)
 % Important notice: the arrays only detect in a forward derection.
 % Therefore we turn them -90 degrees so that they lay flat on the floor. 
-position_array_1 = [1.5 1.5 0 0 -90 0];
-position_array_2 = [1.5 3.5 0 0 -90 0];
-position_array_3 = [3.5 2.5 0 0 -90 0];
-position_nodes = [position_array_1; position_array_2; position_array_3];
+
+% position_array_1 = [1.5 1.5 0 0 -90 0];
+% position_array_2 = [1.5 3.5 0 0 -90 0];
+% position_array_3 = [3.5 2.5 0 0 -90 0];
+% position_nodes = [position_array_1; position_array_2; position_array_3];
+GAcoord = [1.94301535766637
+1.48902501987710
+2.89671110827014
+0.916151102191052
+3.92750935197575
+2.47471735300402];
+
+position_nodes = [GAcoord(1),0,GAcoord(2),0,180,-90; %stay on wall for y=0
+                    0,GAcoord(3),GAcoord(4),0,0,0; %stay on wall where x=0, standard rotation is in YZ plane
+                    GAcoord(5),GAcoord(6),0,0,-90,0]; %stay on on the floor, z=0
 
 %% 2) BEAMFORMING PARAMETERS
 % Positions of the microphones of one array.
