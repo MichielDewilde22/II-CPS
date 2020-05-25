@@ -9,8 +9,8 @@ clear;
 
 
 %% 1) setting paramaters
-length_seconds = 60; % length of audio signal
-fs = 50000; % sample frequency
+length_seconds = 5; % length of audio signal
+fs = 500000; % sample frequency
 freq_low = 20000;
 freq_high = 22000;
 
@@ -36,4 +36,4 @@ plot_spectrum(f, fft_data, 'data', 'Hz');
 
 %% 4) write to audio file
 % audiowrite('test_audio.wav', data, fs);
-audiowrite('sound_signal_20-22kHz.wav', data_filtered, fs);
+audiowrite('sound_signal_short_20-22kHz.wav', data_filtered, fs);

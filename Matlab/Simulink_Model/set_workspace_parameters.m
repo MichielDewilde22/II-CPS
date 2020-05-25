@@ -25,7 +25,7 @@ fprintf("Setting workspace variables...\n");
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
 
-GENERATE_MIC_DATA = 0; % 0 if it is already genenerated.
+GENERATE_MIC_DATA = 1; % 0 if it is already genenerated.
 PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 
 % clearing worskpace
@@ -85,7 +85,7 @@ BF.mic_coordinates(:,2) = rdc(BF.mic_coordinates(:,2));
 BF.mic_coordinates(:,3) = rdc(BF.mic_coordinates(:,3));
 
 % Loading audio properties
-BF.audio_filename = 'sound_signal_20-22kHz.wav';
+BF.audio_filename = 'sound_signal_20-22kHz_high_fs.wav';
 audio_info = audioinfo(BF.audio_filename);
 BF.samp_rate = audio_info.SampleRate; % normally 50kHz
 BF.n_samples = audio_info.TotalSamples; 
@@ -122,7 +122,6 @@ clear points audio_info azimuths elevations indicesHalfShere ...
 BF.model_step = BF.batch_size*(1/BF.samp_rate);
 
 %% 3) GENERATING MICROPHONE DATA
-
 
 % We only need to generate the data if it is not already stored in the
 % folder "Model_Data > Microphone_Data > data_array_X". 
