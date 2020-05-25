@@ -34,7 +34,7 @@ begin_indxs = begin_indxs(1:end-1);
 end_indxs = ceil(linspace(1,n_samples,n_locations+1));
 end_indxs = end_indxs(2:end);
 
-zp_base_sound = ceil(n_samples/n_locations);
+zp_base_sound = ceil(n_samples/n_locations)*2;
 
 % We pad the end of the vector with zeros to emulate no sound is
 % produced.
@@ -81,6 +81,7 @@ for i_loc = 1:n_locations
             % Add random noise between +- noisePM
             capture = amplituteOffset * ones(batch_size,1) + (rand(batch_size,1)*2*noisePM)-noisePM;
             capture = capture + base_sound_zp(begin_indx_channel:end_indx_channel);
+        
 
             y_i(:,i_channel) = capture;
             

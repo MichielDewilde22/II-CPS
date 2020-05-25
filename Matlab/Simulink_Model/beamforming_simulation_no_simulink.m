@@ -81,17 +81,7 @@ angles = rad2deg(angles); % angles used for beamforming
 
 % % location of the sound
 % path_data = load('Model_Data\mosquitoopath_X_Y_Z_5_5_2.5.mat');
-% path_x = path_data.data{1}.Values.Data;
-% path_y = path_data.data{2}.Values.Data;
-% path_z = path_data.data{3}.Values.Data;
-% 
-% n_locations = size(path_data.data{1}.Values.Data,1);
-% sound_location = zeros(n_locations, 3);
-% sound_locations(:,1) = path_data.data{1}.Values.Data;
-% sound_locations(:,2) = path_data.data{2}.Values.Data;
-% sound_locations(:,3) = path_data.data{3}.Values.Data;
-
-path_data = load('Model_Data\mosquitoopath_X_Y_Z_5_5_2.5.mat');
+path_data = load('Model_Data\Mosquito_path\6_xyz_5,5,2.5_random_142,95,36.mat');
 
 n_locations = size(path_data.data{1}.Values.Data,1);
 sound_location = zeros(n_locations, 3);
@@ -145,7 +135,6 @@ end
 data_large_1 = audioread('Model_Data/Microphone_Data/data_array_1/capture.wav');
 data_large_2 = audioread('Model_Data/Microphone_Data/data_array_2/capture.wav');
 data_large_3 = audioread('Model_Data/Microphone_Data/data_array_3/capture.wav');
-size(data_large_1)
 
 print_counter = 501;
 
@@ -259,3 +248,5 @@ for i_batch = 1:n_batch
 end
 mean_error = median(error_beams);
 fprintf('The error median was: '+string(mean_error)+' meters.\n');
+dirName = sprintf('Simulation_Data');
+save([dirName '/results_path_6'],'error_beams','intersections','locations');
