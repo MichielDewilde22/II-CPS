@@ -67,7 +67,7 @@ mic_coordinates(:,3) = rdc(mic_coordinates_zxy(:,1));
 clear mic_coordinates_zxy;
 
 % Loading audio properties
-audio.filename = 'sound_signal_short_20-22kHz.wav';
+audio.filename = 'sound_signal_20-22kHz_high_fs.wav';
 
 % Beamforming constants
 v_sound = 343; % speed of sound in m/s
@@ -81,33 +81,13 @@ angles = rad2deg(angles); % angles used for beamforming
 
 % % location of the sound
 % path_data = load('Model_Data\mosquitoopath_X_Y_Z_5_5_2.5.mat');
-% path_data = load('Model_Data\Mosquito_path\4_xyz_2,1,1_random_4,8,9.mat');
-% 
-% n_locations = size(path_data.data{1}.Values.Data,1);
-% sound_location = zeros(n_locations, 3);
-% sound_location(:,1) = path_data.data{1}.Values.Data;
-% sound_location(:,2) = path_data.data{2}.Values.Data;
-% sound_location(:,3) = path_data.data{3}.Values.Data;
+path_data = load('Model_Data\Mosquito_path\4_xyz_2,1,1_random_4,8,9.mat');
 
-n_locations = 100;
+n_locations = size(path_data.data{1}.Values.Data,1);
 sound_location = zeros(n_locations, 3);
-% sound_locations(:,1) = linspace(0, room_dimensions(1), n_locations);
-% sound_locations(:,2) = linspace(0, room_dimensions(2), n_locations);
-% sound_locations(:,3) = linspace(0, room_dimensions(3), n_locations);
-
-i = 1;
-for xcoord = 0.5: 4.5
-   for ycoord = 0.5: 4.5
-      for zcoord = 0.5: 1.5
-          sound_location(i,:) = [xcoord, ycoord, zcoord];
-          i = i+1;
-      end
-      for zcoord = 1 : 2
-          sound_location(i,:) = [xcoord, ycoord, zcoord];
-          i = i+1;
-      end
-   end
-end
+sound_location(:,1) = path_data.data{1}.Values.Data;
+sound_location(:,2) = path_data.data{2}.Values.Data;
+sound_location(:,3) = path_data.data{3}.Values.Data;
 
 % creating frequency bins for steering matrix & beamforming algorithm
 n_fft_bins = 101;
@@ -175,9 +155,10 @@ locations_per_batch = n_locations/n_batch;
 [ txLAEAP, tyLAEAP ] = laeap( -90:1:90, -90:1:90 );
 [txVertical, tyVertical] = laeap(-90:30:90, -90:5:90);
 [txHorizontal, tyHorizontal] = laeap(-90:5:90, -90:30:90);
-print_batches = []; % put in batch number you want to plot in detail
 
-for i_batch = 1:n_batch
+print_batches = [200 1500 4500 5500];
+for i_batch_n = 1:length(print_batches)
+    i_batch = print_batches(i_batch_n);
     current_data_1 = GetBatch(batch_size,i_batch,data_large_1);
     current_data_2 = GetBatch(batch_size,i_batch,data_large_2);
     current_data_3 = GetBatch(batch_size,i_batch,data_large_3);
@@ -201,7 +182,7 @@ for i_batch = 1:n_batch
     loc_index = ceil(i_batch*locations_per_batch);
     locations(i_batch,:) = [sound_location(loc_index,1), sound_location(loc_index,2), sound_location(loc_index,3)];
     
-    if sum(print_batches==print_counter)>0
+    if 1
         fprintf("Angles of batch: "+i_batch+"\n");
         
         figure;
@@ -227,12 +208,12 @@ for i_batch = 1:n_batch
         current_difference = norm(locations(i_batch,:) - intersections(i_batch,:));
         error_string = "Batch " + string(i_batch) + ", Difference = "+string(current_difference)+" meter.";
         title(error_string);
-        legend('Position Nodes', 'Directions', 'calculated point', 'actual point');
+        legend('Position Nodes', 'Direction of Array', 'calculated point', 'actual point');
         hold off;
         
         %% plot steering array 1
         subplot(1,2,2);
-        interpolatorES = scatteredInterpolant(squeeze(angles(1,:))', squeeze(angles(2,:))', power1(:));
+        interpolatorES = scatteredInterpolant(squeeze(angles(1,:))', squeeze(angles(2,:))', 10*log10(power1(:)));
         cla;
         hp = pcolor( txLAEAP, tyLAEAP, interpolatorES( azMatES, elMatES ));
         set( hp, 'linestyle', 'none' )
@@ -290,6 +271,7 @@ for i_batch = 1:n_batch
     end
     print_counter = print_counter + 1;
 end
+return
 %% 5) SERVOS & LASERS
 
 
