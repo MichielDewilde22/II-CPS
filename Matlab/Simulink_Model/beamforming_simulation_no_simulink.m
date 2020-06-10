@@ -38,10 +38,13 @@ room_dimensions = [5 5 2.5];
 % Important notice: the arrays only detect in a forward derection.
 % Therefore we turn them -90 degrees so that they lay flat on the floor. 
 
+% old positions
 % position_array_1 = [1.5 1.5 0 0 -90 0];
 % position_array_2 = [1.5 3.5 0 0 -90 0];
 % position_array_3 = [3.5 2.5 0 0 -90 0];
 % position_nodes = [position_array_1; position_array_2; position_array_3];
+
+% genatic algorithm positions
 GAcoord = [1.94301535766637
 1.48902501987710
 2.89671110827014
@@ -67,7 +70,8 @@ mic_coordinates(:,3) = rdc(mic_coordinates_zxy(:,1));
 clear mic_coordinates_zxy;
 
 % Loading audio properties
-audio.filename = 'sound_signal_short_20-22kHz.wav';
+% audio.filename = 'sound_signal_short_20-22kHz.wav';
+audio.filename = 'sound_signal_20-22kHz_high_fs.wav';
 
 % Beamforming constants
 v_sound = 343; % speed of sound in m/s
@@ -79,35 +83,24 @@ indicesHalfShere = find(azimuth>-pi/2 & azimuth<pi/2);
 angles = [azimuth(indicesHalfShere); elevation(indicesHalfShere)];
 angles = rad2deg(angles); % angles used for beamforming
 
-% % location of the sound
-% path_data = load('Model_Data\mosquitoopath_X_Y_Z_5_5_2.5.mat');
-% path_data = load('Model_Data\Mosquito_path\4_xyz_2,1,1_random_4,8,9.mat');
-% 
-% n_locations = size(path_data.data{1}.Values.Data,1);
-% sound_location = zeros(n_locations, 3);
-% sound_location(:,1) = path_data.data{1}.Values.Data;
-% sound_location(:,2) = path_data.data{2}.Values.Data;
-% sound_location(:,3) = path_data.data{3}.Values.Data;
+% For loading a randomly mosquito path
+% path_data = load('Model_Data\Mosquito_path\mosquitoopath_X_Y_Z_5_5_2.5.mat'); % 0
+% path_data = load('Model_Data\Mosquito_path\1_xyz_1,1,1_random_10,12,15.mat'); % 1
+% path_data = load('Model_Data\Mosquito_path\2_xyz_1,1,2_random_14,31,11.mat'); % 2
+path_data = load('Model_Data\Mosquito_path\3_xyz_1,2,1_random_7,5,3.mat'); % 3
+% path_data = load('Model_Data\Mosquito_path\4_xyz_2,1,1_random_4,8,9.mat'); % 4
+% path_data = load('Model_Data\Mosquito_path\5_xyz_2,3,1_random_81,123,156.mat'); % 5
+% path_data = load('Model_Data\Mosquito_path\6_xyz_5,5,2.5_random_142,95,36.mat'); % 6
 
-n_locations = 100;
+n_locations = size(path_data.data{1}.Values.Data,1);
 sound_location = zeros(n_locations, 3);
-% sound_locations(:,1) = linspace(0, room_dimensions(1), n_locations);
-% sound_locations(:,2) = linspace(0, room_dimensions(2), n_locations);
-% sound_locations(:,3) = linspace(0, room_dimensions(3), n_locations);
+sound_location(:,1) = path_data.data{1}.Values.Data;
+sound_location(:,2) = path_data.data{2}.Values.Data;
+sound_location(:,3) = path_data.data{3}.Values.Data;
 
-i = 1;
-for xcoord = 0.5: 4.5
-   for ycoord = 0.5: 4.5
-      for zcoord = 0.5: 1.5
-          sound_location(i,:) = [xcoord, ycoord, zcoord];
-          i = i+1;
-      end
-      for zcoord = 1 : 2
-          sound_location(i,:) = [xcoord, ycoord, zcoord];
-          i = i+1;
-      end
-   end
-end
+% % For locations spread evenly in the room
+% sound_location = GenerateRoomLocations(room_dimensions, 0.7, 0);
+% n_locations = size(sound_location, 1);
 
 % creating frequency bins for steering matrix & beamforming algorithm
 n_fft_bins = 101;
@@ -175,7 +168,7 @@ locations_per_batch = n_locations/n_batch;
 [ txLAEAP, tyLAEAP ] = laeap( -90:1:90, -90:1:90 );
 [txVertical, tyVertical] = laeap(-90:30:90, -90:5:90);
 [txHorizontal, tyHorizontal] = laeap(-90:5:90, -90:30:90);
-print_batches = []; % put in batch number you want to plot in detail
+print_batches = [200 1200 3000 4500]; % put in batch number you want to plot in detail
 
 for i_batch = 1:n_batch
     current_data_1 = GetBatch(batch_size,i_batch,data_large_1);
@@ -250,6 +243,7 @@ for i_batch = 1:n_batch
         colorbar;
         drawnow;
         
+%         %% plot steering array 2        
 %         interpolatorES = scatteredInterpolant(squeeze(angles(1,:))', squeeze(angles(2,:))', power2(:));
 %         figure;
 %         cla;
@@ -268,7 +262,8 @@ for i_batch = 1:n_batch
 %         colormap default
 %         colorbar;
 %         drawnow;
-%         
+%
+%         %% plot steering array 3 
 %         interpolatorES = scatteredInterpolant(squeeze(angles(1,:))', squeeze(angles(2,:))', power3(:));
 %         figure;
 %         hp = pcolor( txLAEAP, tyLAEAP, interpolatorES( azMatES, elMatES ));
@@ -290,10 +285,6 @@ for i_batch = 1:n_batch
     end
     print_counter = print_counter + 1;
 end
-%% 5) SERVOS & LASERS
-
-
-%% 6) HUMAN DETECTION SYSTEM
 
 
 %% 7) PLOTTING ROOM
@@ -332,5 +323,11 @@ error_beams = zeros(n_batch, 1);
 for i_batch = 1:n_batch
     error_beams(i_batch) = norm(locations(i_batch,:) - intersections(i_batch,:));
 end
-mean_error = median(error_beams);
-fprintf('The error median was: '+string(mean_error)+' meters.\n');
+
+median_error = median(error_beams);
+mean_error = mean(error_beams);
+std_error = std(error_beams);
+
+fprintf('The error mean was: '+string(mean_error)+' meters.\n');
+fprintf('The error standard deviation was: '+string(std_error)+' meters.\n');
+fprintf('The error median was: '+string(median_error)+' meters.\n');

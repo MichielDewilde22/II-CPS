@@ -25,7 +25,7 @@ fprintf("Setting workspace variables...\n");
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
 
-GENERATE_MIC_DATA = 1; % 0 if it is already genenerated.
+GENERATE_MIC_DATA = 0; % 0 if it is already genenerated.
 PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 
 % clearing worskpace
@@ -46,17 +46,32 @@ pos.room_size = [5 5 2.5];
 % positioned in a triangle on the floor. (BF.angles are in degrees)
 % Important notice: the arrays only detect in a forward derection.
 % Therefore we turn them -90 degrees so that they lay flat on the floor. 
-pos.array_1 = [1.5 1.5 0 0 -90 0];
-pos.array_2 = [1.5 3.5 0 0 -90 0];
-pos.array_3 = [3.5 2.5 0 0 -90 0];
-pos.arrays = [pos.array_1; pos.array_2; pos.array_3];
+
+% % old positions
+% pos.array_1 = [1.5 1.5 0 0 -90 0];
+% pos.array_2 = [1.5 3.5 0 0 -90 0];
+% pos.array_3 = [3.5 2.5 0 0 -90 0];
+% pos.arrays = [pos.array_1; pos.array_2; pos.array_3];
+
+% new positions (GA optimized)
+GAcoord = [1.94301535766637 1.48902501987710 2.89671110827014 0.916151102191052 3.92750935197575 2.47471735300402];
+pos.arrays = [GAcoord(1),0,GAcoord(2),0,180,-90;  %stay on wall for y=0
+              0,GAcoord(3),GAcoord(4),0,0,0;      %stay on wall where x=0, standard rotation is in YZ plane
+              GAcoord(5),GAcoord(6),0,0,-90,0];   %stay on on the floor, z=0
 
 pos.camera = [0.1 0.1 0.1 0 0 0];
 
 pos.laser = [0.1 0.1 0.1 0 0 0];
 
 % location of the sound
-path_data = load('Model_Data\mosquitoopath_X_Y_Z_5_5_2.5.mat');
+% For loading a randomly mosquito path
+% path_data = load('Model_Data\Mosquito_path\mosquitoopath_X_Y_Z_5_5_2.5.mat'); % 0
+% path_data = load('Model_Data\Mosquito_path\1_xyz_1,1,1_random_10,12,15.mat'); % 1
+% path_data = load('Model_Data\Mosquito_path\2_xyz_1,1,2_random_14,31,11.mat'); % 2
+path_data = load('Model_Data\Mosquito_path\3_xyz_1,2,1_random_7,5,3.mat'); % 3
+% path_data = load('Model_Data\Mosquito_path\4_xyz_2,1,1_random_4,8,9.mat'); % 4
+% path_data = load('Model_Data\Mosquito_path\5_xyz_2,3,1_random_81,123,156.mat'); % 5
+% path_data = load('Model_Data\Mosquito_path\6_xyz_5,5,2.5_random_142,95,36.mat'); % 6
 
 pos.n_sound_locations = size(path_data.data{1}.Values.Data,1);
 pos.sound_locations = zeros(pos.n_sound_locations, 3);
@@ -64,28 +79,33 @@ pos.sound_locations(:,1) = path_data.data{1}.Values.Data;
 pos.sound_locations(:,2) = path_data.data{2}.Values.Data;
 pos.sound_locations(:,3) = path_data.data{3}.Values.Data;
 
+% % For locations spread evenly in the room
+% pos.sound_locations = GenerateRoomLocations(room_dimensions, 0.7, 0);
+% pos.n_sound_locations = size(sound_location, 1);
+
 % clearing workspace
-clear path_data;
+clear path_data GAcoord;
 
 %% 2) BEAMFORMING PARAMETERS
 % printing progress
 fprintf("Loading beamforming parameters...\n");
 
 % Positions of the microphones of one array.
-load('mic_pos_sonar_stm32_dense.mat'); % dimensions are in millimeter
-BF.mic_coordinates = [ mic_pos_final_pos/1000 zeros( 32,1 ) ]; % in meter
-BF.array_type = 5; % used array type, 5 = dense array
-BF.array_size = size(BF.mic_coordinates, 1);
+BF.array_type = 7; % used array type, 7 = circular array 8 mics
+mic_coordinates_zxy = NodePosToArrayPos([0 0 0 0 0 0], BF.array_type).';
 
 % Centering the microphone pos. We use the function "rdc.m" which was
 % originally intended to remove "DC" of signals. But it works... We use the
 % centered microphone array position to generate the steering matrix. 
-BF.mic_coordinates(:,1) = rdc(BF.mic_coordinates(:,1));  
-BF.mic_coordinates(:,2) = rdc(BF.mic_coordinates(:,2));
-BF.mic_coordinates(:,3) = rdc(BF.mic_coordinates(:,3));
+BF.mic_coordinates(:,1) = rdc(mic_coordinates_zxy(:,2));  
+BF.mic_coordinates(:,2) = rdc(mic_coordinates_zxy(:,3));
+BF.mic_coordinates(:,3) = rdc(mic_coordinates_zxy(:,1));
+
+BF.array_size = size(BF.mic_coordinates, 1);
 
 % Loading audio properties
 BF.audio_filename = 'sound_signal_20-22kHz_high_fs.wav';
+% BF.audio_filename = 'sound_signal_short_20-22kHz.wav';
 audio_info = audioinfo(BF.audio_filename);
 BF.samp_rate = audio_info.SampleRate; % normally 50kHz
 BF.n_samples = audio_info.TotalSamples; 
@@ -93,7 +113,7 @@ BF.duration = BF.n_samples/BF.samp_rate;
 BF.path = audio_info.Filename;
 
 % Creating matrix of BF.angles to use in the beamforming algorithm
-points = eq_point_set(2,500);
+points = eq_point_set(2,8001);
 [azimuths,elevations,~] = cart2sph(points(1,:),points(2,:),points(3,:));
 indicesHalfShere = find(azimuths>-pi/2 & azimuths<pi/2);
 BF.angles = [azimuths(indicesHalfShere); elevations(indicesHalfShere)];
@@ -108,7 +128,7 @@ BF.used_freqs = ((BF.freqs_fft >= BF.freq_min)&(BF.freqs_fft <= BF.freq_max));
 BF.first_bin = find(BF.used_freqs, 1, 'first');
 BF.last_bin = find(BF.used_freqs, 1, 'last');
 
-BF.batch_size = 2000;
+BF.batch_size = 500;
 
 % creating steering matrix
 BF.steering_matrix_freqs = BF.freqs_fft(BF.first_bin:BF.last_bin);
@@ -117,7 +137,7 @@ BF.steering_matrix = GenerateSteeringMatrix(BF.mic_coordinates, BF.angles, ...
 
 % clearing worskpace
 clear points audio_info azimuths elevations indicesHalfShere ...
-    mic_pos_final_pos;
+    mic_pos_final_pos mic_coordinates_zxy;
 
 BF.model_step = BF.batch_size*(1/BF.samp_rate);
 
@@ -145,9 +165,9 @@ if GENERATE_MIC_DATA
     timeVar = [0 0 0]; % create offset for each node
     
     
-    GenerateMicData_V3(base_sound, fs, pos.arrays, ...
+    GenerateMicData_V4(base_sound, fs, pos.arrays, ...
         pos.sound_locations, amplitudeOffset, noisePM, timeVar, ...
-        BF.array_type);
+        BF.array_type, 10, 1);
     
     % clearing workspace
     clear base_sound fs amplitudeOffset noisePM timeVar;
@@ -210,7 +230,7 @@ if PLOT_ROOM
     scatter3(pos.laser(1), pos.laser(2), pos.laser(3), ...
         'MarkerFaceColor', [1 0 1]);
     
-    legend('Path Mosquito', 'Array 1', 'Array 2', 'Array 3', 'Camera');
+    legend('Path Mosquito', 'Array 1', 'Array 2', 'Array 3', 'Camera', 'Laser');
     view(20,20);
 end
 
