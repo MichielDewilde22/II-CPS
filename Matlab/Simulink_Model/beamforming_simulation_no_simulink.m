@@ -22,7 +22,7 @@ end
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
 
-GENERATE_MIC_DATA = 1; % 0 if it is already genenerated.
+GENERATE_MIC_DATA = 0; % 0 if it is already genenerated.
 PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 
 %% 1) ROOM DIMENSIONS
@@ -111,7 +111,7 @@ used_freqs = ((freqs_fft >= freq_min)&(freqs_fft <= freq_max));
 first_bin = find(used_freqs, 1, 'first');
 last_bin = find(used_freqs, 1, 'last');
 
-batch_size = 500;
+batch_size = 2500;
 
 % creating steering matrix
 steering_matrix_freqs = freqs_fft(first_bin:last_bin);

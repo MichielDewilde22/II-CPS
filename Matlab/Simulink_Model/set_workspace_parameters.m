@@ -25,7 +25,7 @@ fprintf("Setting workspace variables...\n");
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
 
-GENERATE_MIC_DATA = 1; % 0 if it is already genenerated.
+GENERATE_MIC_DATA = 0; % 0 if it is already genenerated.
 PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 
 % clearing worskpace
@@ -107,8 +107,11 @@ BF.array_size = size(BF.mic_coordinates, 1);
 BF.audio_filename = 'sound_signal_20-22kHz_high_fs.wav';
 % BF.audio_filename = 'sound_signal_short_20-22kHz.wav';
 audio_info = audioinfo(BF.audio_filename);
-BF.samp_rate = audio_info.SampleRate; % normally 50kHz
-BF.n_samples = audio_info.TotalSamples; 
+BF.samp_rate_audio = audio_info.SampleRate; % normally 500kHz
+BF.decimation_factor = 10;
+BF.samp_rate = BF.samp_rate_audio / BF.decimation_factor;
+BF.n_samples_audio = audio_info.TotalSamples;
+BF.n_samples = BF.n_samples_audio / BF.decimation_factor;
 BF.duration = BF.n_samples/BF.samp_rate;
 BF.path = audio_info.Filename;
 
@@ -128,7 +131,7 @@ BF.used_freqs = ((BF.freqs_fft >= BF.freq_min)&(BF.freqs_fft <= BF.freq_max));
 BF.first_bin = find(BF.used_freqs, 1, 'first');
 BF.last_bin = find(BF.used_freqs, 1, 'last');
 
-BF.batch_size = 500;
+BF.batch_size = 2500;
 
 % creating steering matrix
 BF.steering_matrix_freqs = BF.freqs_fft(BF.first_bin:BF.last_bin);
@@ -139,56 +142,68 @@ BF.steering_matrix = GenerateSteeringMatrix(BF.mic_coordinates, BF.angles, ...
 clear points audio_info azimuths elevations indicesHalfShere ...
     mic_pos_final_pos mic_coordinates_zxy;
 
-BF.model_step = BF.batch_size*(1/BF.samp_rate);
+BF.model_step = BF.duration / (BF.n_samples / BF.batch_size);
 
-%% 3) GENERATING MICROPHONE DATA
+    %% 2.1) GENERATING MICROPHONE DATA
 
-% We only need to generate the data if it is not already stored in the
-% folder "Model_Data > Microphone_Data > data_array_X". 
-if GENERATE_MIC_DATA
-    % printing progress
-    fprintf("Generating Microphone Data for beamforming ...\n");
-    
-    % Check if the right folder exists (and make it if not so)
-    if ~exist('Model_Data/Microphone_Data', 'dir')
-       mkdir Model_Data Microphone_Data;
-       addpath('Model_Data/Microphone_Data');
+    % We only need to generate the data if it is not already stored in the
+    % folder "Model_Data > Microphone_Data > data_array_X". 
+    if GENERATE_MIC_DATA
+        % printing progress
+        fprintf("Generating Microphone Data for beamforming ...\n");
+
+        % Check if the right folder exists (and make it if not so)
+        if ~exist('Model_Data/Microphone_Data', 'dir')
+           mkdir Model_Data Microphone_Data;
+           addpath('Model_Data/Microphone_Data');
+        end
+
+        [base_sound, fs] = audioread(BF.audio_filename);
+
+        % - amplituteOffset    : Amplitute offset in volts
+        amplitudeOffset = 0;
+        % - noisePM            : Plus or minus offset of noise amplitude
+        noisePM = 0;
+        % - timeVar            : Normal distributed offset in capture start
+        timeVar = [0 0 0]; % create offset for each node
+
+
+        GenerateMicData_V4(base_sound, fs, pos.arrays, ...
+            pos.sound_locations, amplitudeOffset, noisePM, timeVar, ...
+            BF.array_type, BF.decimation_factor, 1);
+
+        % clearing workspace
+        clear base_sound fs amplitudeOffset noisePM timeVar;
     end
-    
-    [base_sound, fs] = audioread(BF.audio_filename);
-    
-    % - amplituteOffset    : Amplitute offset in volts
-    amplitudeOffset = 0;
-    % - noisePM            : Plus or minus offset of noise amplitude
-    noisePM = 0;
-    % - timeVar            : Normal distributed offset in capture start
-    timeVar = [0 0 0]; % create offset for each node
-    
-    
-    GenerateMicData_V4(base_sound, fs, pos.arrays, ...
-        pos.sound_locations, amplitudeOffset, noisePM, timeVar, ...
-        BF.array_type, 10, 1);
-    
-    % clearing workspace
-    clear base_sound fs amplitudeOffset noisePM timeVar;
-end
-%% 4) LOADING MICROPHONE DATA
-% printing progress
-fprintf("Loading beamforming data...\n");
-data_array_1 = audioread('Model_Data/Microphone_Data/data_array_1/capture.wav');
-data_array_2 = audioread('Model_Data/Microphone_Data/data_array_2/capture.wav');
-data_array_3 = audioread('Model_Data/Microphone_Data/data_array_3/capture.wav');
 
-%% 5) SERVOS & LASERS
+
+    %% 2.2) LOADING MICROPHONE DATA
+    % printing progress
+    fprintf("Loading beamforming data...\n");
+    data_array_1 = audioread('Model_Data/Microphone_Data/data_array_1/capture.wav');
+    data_array_2 = audioread('Model_Data/Microphone_Data/data_array_2/capture.wav');
+    data_array_3 = audioread('Model_Data/Microphone_Data/data_array_3/capture.wav');
+
+%% 3) KALMAN FILTER
+PF_delay = 0.01;
+
+%% 4) SERIAL COMMUNICATION
+SC.baud_rate = 9600;
+SC.n_bits = 224;
+SC.delay = SC.n_bits / SC.baud_rate;
+
+SC.avg_packet_loss = 1; % in percentage
+
+%% 5) MICROCONTROLLER
 MCU_freq = 1000000;
 MCU_timerPrescaler = 16;
 MCU_timerDesiredFreq = 50;
 
+%% 6) SERVOS
 Servo_PWM_0_degree = 4.5;
 Servo_PWM_180_degree = 10.5;
 
-PF_delay = 0.01;
-%% 6) HUMAN DETECTION SYSTEM
+%% 7) HUMAN DETECTION SYSTEM
 % printing progress
 fprintf("Loading Human Detection paramaters...\n");
 HDS.FOV = 1.0856; % Camera field of view
@@ -197,7 +212,7 @@ HDS.camera_position = [3.5355 0.1 3.3941];
 HDS.h_res = 640;
 HDS.v_res = 480;
 
-%% 7) PLOTTING ROOM
+%% 8) PLOTTING ROOM
 % printing progress
 fprintf("Plotting room ...\n");
 if PLOT_ROOM
