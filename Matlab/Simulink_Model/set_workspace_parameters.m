@@ -25,7 +25,7 @@ fprintf("Setting workspace variables...\n");
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
 
-GENERATE_MIC_DATA = 1; % 0 if it is already genenerated.
+GENERATE_MIC_DATA = 0; % 0 if it is already genenerated.
 PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 
 % clearing worskpace
