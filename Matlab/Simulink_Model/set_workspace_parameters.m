@@ -194,6 +194,8 @@ SC.delay_serial = SC.n_bits / SC.baud_rate;
 SC.extra_delay = 0.01;
 SC.delay = SC.delay_serial + SC.extra_delay;
 
+SC.bitflip = 2;
+
 SC.avg_packet_loss = 2; % in percentage
 
 %% 5) MICROCONTROLLER
