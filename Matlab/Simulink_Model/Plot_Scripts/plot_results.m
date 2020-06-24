@@ -18,14 +18,6 @@ fprintf(" 1) Loading Data \n");
 timepoints = [5 15 25 35 45 55];
 n_timepoints = size(timepoints, 2);
 
-% Booleans for plotting a certain aspect
-PLOT_ROOM = 1;
-PLOT_ARRAY_DIR = 1;
-PLOT_INTERSECTIONS = 1;
-PLOT_FILTER = 1;
-PLOT_FILTER_DIR = 1;
-PLOT_SERIAL_DIR = 1;
-
 %% 0: LOADING DATA
 az1_data = load('Simulation_Data\plot_data\1_azimuth.mat');
 az2_data = load('Simulation_Data\plot_data\2_azimuth.mat');
@@ -71,46 +63,51 @@ azSerial = azSerial_data.ans;
 elSerial = elSerial_data.ans;
 clear azSerial_data elSerial_data;
 
+azServo_data = load('Simulation_Data\plot_data\az_servo.mat');
+elServo_data = load('Simulation_Data\plot_data\el_servo.mat');
+azServo = azServo_data.ans;
+elServo = elServo_data.ans;
+clear azServo_dat elServo_data;
+
 %% 1: PLOTTING THE ROOM
 fprintf(" 2) Plotting Room \n");
-if PLOT_ROOM
-    figure;
-    hold on; 
-    grid on; 
-    xlabel('x [m]'); 
-    ylabel('y [m]'); 
-    zlabel('z [m]'); 
-    axis equal;
-    xlim([0 pos.room_size(1)]);
-    ylim([0 pos.room_size(2)]);
-    zlim([0 pos.room_size(3)]);
 
-    % plotting path mosquito
-    plot3(pos.sound_locations(:,1), pos.sound_locations(:,2), ...
-        pos.sound_locations(:,3), 'Color', [0 0 1]);
+figure;
+hold on; 
+grid on; 
+xlabel('x [m]'); 
+ylabel('y [m]'); 
+zlabel('z [m]'); 
+axis equal;
+xlim([0 pos.room_size(1)]);
+ylim([0 pos.room_size(2)]);
+zlim([0 pos.room_size(3)]);
 
-    % plotting microphone arrays
-    for node_i = 1:size(pos.arrays,1)
-        array = NodePosToArrayPos(pos.arrays(node_i,:), BF.array_type);
-        scatter3(array(1,:), array(2,:), array(3,:), 'MarkerFaceColor', [1 0 0]);
-    end
+% plotting path mosquito
+plot3(pos.sound_locations(:,1), pos.sound_locations(:,2), ...
+    pos.sound_locations(:,3), 'Color', [0 0 1]);
 
-    % plot camera
-    scatter3(pos.camera(1), pos.camera(2), pos.camera(3), ...
-        'MarkerFaceColor', [1 1 0]);
-
-    % plot laser
-    scatter3(pos.laser(1), pos.laser(2), pos.laser(3), ...
-        'MarkerFaceColor', [1 0 1]);
-
-    scatter3(xBeam.data, yBeam.data, zBeam.data,'MarkerEdgeColor', 'm', 'Marker','.');
-    scatter3(xFilter.data, yFilter.data, zFilter.data, 'MarkerEdgeColor', 'g', 'marker', '*');
-
-    legend('Path Mosquito', 'Array 1', 'Array 2', 'Array 3', 'Camera', 'Laser', 'Position After Beamforming', 'Position After Filter');
-    title('Room Plot');
-    
-    view(20,20);
+% plotting microphone arrays
+for node_i = 1:size(pos.arrays,1)
+    array = NodePosToArrayPos(pos.arrays(node_i,:), BF.array_type);
+    scatter3(array(1,:), array(2,:), array(3,:), 'MarkerFaceColor', [1 0 0]);
 end
+
+% plot camera
+scatter3(pos.camera(1), pos.camera(2), pos.camera(3), ...
+    'MarkerFaceColor', [1 1 0]);
+
+% plot laser
+scatter3(pos.laser(1), pos.laser(2), pos.laser(3), ...
+    'MarkerFaceColor', [1 0 1]);
+
+scatter3(xBeam.data, yBeam.data, zBeam.data,'MarkerEdgeColor', 'm', 'Marker','.');
+scatter3(xFilter.data, yFilter.data, zFilter.data, 'MarkerEdgeColor', 'g', 'marker', '*');
+
+legend('Path Mosquito', 'Array 1', 'Array 2', 'Array 3', 'Camera', 'Laser', 'Position After Beamforming', 'Position After Filter');
+title('Room Plot');
+
+view(20,20);
 
 %% 2: plotting timepoints
 sound_location_step_size = (BF.duration / (pos.n_sound_locations-1));
@@ -166,63 +163,65 @@ for iSample = 1:n_timepoints
             5, 'LineStyle', '-','Color', 'y');
     legendStrings{end+1} = "Ideal Laser Direction";
         
-    %% calculating vectors
-    if PLOT_ARRAY_DIR
-        [timepoint_BF, az1_dir] = getNearestPoint(az1, timepoint);
-        [~, az2_dir] = getNearestPoint(az2, timepoint);
-        [~, az3_dir] = getNearestPoint(az3, timepoint);
-        
-        [~, el1_dir] = getNearestPoint(el1, timepoint);
-        [~, el2_dir] = getNearestPoint(el2, timepoint);
-        [~, el3_dir] = getNearestPoint(el3, timepoint);
-        
-        directions = [az1_dir el1_dir; az2_dir el2_dir; az3_dir el3_dir];
-        vectors = AnglesToVectorsSize(pos.arrays, directions, 100);
-        
-        quiver3(vectors(:,1), vectors(:,2), vectors(:,3), vectors(:,4), vectors(:,5), vectors(:,6), 5, 'LineStyle', '--', 'Color', [1 0 1]);
-        legendStrings{end+1} = "Array BF Directions";
-        annString = annString + " Time Measurements BF & Filtering: " + string(timepoint_BF) + "s";
-    end
+    %% plotting beamforming directions
+    [timepoint_BF, az1_dir] = getNearestPoint(az1, timepoint);
+    [~, az2_dir] = getNearestPoint(az2, timepoint);
+    [~, az3_dir] = getNearestPoint(az3, timepoint);
+
+    [~, el1_dir] = getNearestPoint(el1, timepoint);
+    [~, el2_dir] = getNearestPoint(el2, timepoint);
+    [~, el3_dir] = getNearestPoint(el3, timepoint);
+
+    directions = [az1_dir el1_dir; az2_dir el2_dir; az3_dir el3_dir];
+    vectors = AnglesToVectorsSize(pos.arrays, directions, 100);
+
+    quiver3(vectors(:,1), vectors(:,2), vectors(:,3), vectors(:,4), vectors(:,5), vectors(:,6), 5, 'LineStyle', '--', 'Color', [1 0 1]);
+    legendStrings{end+1} = "Array BF Directions";
+    annString = annString + " Time Measurements BF & Filtering: " + string(timepoint_BF) + "s";
     
-    if PLOT_INTERSECTIONS
-        [~, xBeam_pos] = getNearestPoint(xBeam, timepoint);
-        [~, yBeam_pos] = getNearestPoint(yBeam, timepoint);
-        [~, zBeam_pos] = getNearestPoint(zBeam, timepoint);
-        
-        scatter3(xBeam_pos, yBeam_pos, zBeam_pos,'MarkerEdgeColor', 'm', 'Marker', 'x');
-        legendStrings{end+1} = "Intersection Before Filter";
-    end
+    %% plotting beamforming intersections
+    [~, xBeam_pos] = getNearestPoint(xBeam, timepoint);
+    [~, yBeam_pos] = getNearestPoint(yBeam, timepoint);
+    [~, zBeam_pos] = getNearestPoint(zBeam, timepoint);
+
+    scatter3(xBeam_pos, yBeam_pos, zBeam_pos,'MarkerEdgeColor', 'm', 'Marker', 'x');
+    legendStrings{end+1} = "Intersection Before Filter";
     
-    if PLOT_FILTER
-        [~, xFilter_pos] = getNearestPoint(xFilter, timepoint);
-        [~, yFilter_pos] = getNearestPoint(yFilter, timepoint);
-        [~, zFilter_pos] = getNearestPoint(zFilter, timepoint);
-        
-        scatter3(xFilter_pos, yFilter_pos, zFilter_pos,'MarkerEdgeColor', 'g', 'Marker', '*');
-        legendStrings{end+1} = "Intersection After Filter";
-    end
+    %% plotting intersection after filter
+    [~, xFilter_pos] = getNearestPoint(xFilter, timepoint);
+    [~, yFilter_pos] = getNearestPoint(yFilter, timepoint);
+    [~, zFilter_pos] = getNearestPoint(zFilter, timepoint);
+
+    scatter3(xFilter_pos, yFilter_pos, zFilter_pos,'MarkerEdgeColor', 'g', 'Marker', '*');
+    legendStrings{end+1} = "Intersection After Filter";
     
+    %% plotting direction after filter
+    [~, azFilter_dir] = getNearestPoint(azFilter, timepoint);
+    [~, elFilter_dir] = getNearestPoint(elFilter, timepoint);
+
+    vector_filter = AnglesToLaserVector(pos.laser, azFilter_dir, elFilter_dir);
+    quiver3(vector_filter(1), vector_filter(2), vector_filter(3), vector_filter(4), vector_filter(5), vector_filter(6), ...
+        5, 'LineStyle', '--','Color', [0 1 0]);
+    legendStrings{end+1} = "Direction after Filter";
+        
+    %% plotting serial direction 
+    [timepoint_serial, azSerial_dir] = getNearestPoint(azSerial, timepoint);
+    [~, elSerial_dir] = getNearestPoint(elSerial, timepoint);
+
+    vector_serial = AnglesToLaserVector(pos.laser, azSerial_dir, elSerial_dir);
+    quiver3(vector_serial(1), vector_serial(2), vector_serial(3), vector_serial(4), vector_serial(5), vector_serial(6), ...
+        5, 'LineStyle', '--','Color', [0 0 1]);
+    legendStrings{end+1} = "Direction after Serial";
+    annString = annString + " -- Time Measurements After Serial: " + string(timepoint_serial) + "s";
     
-    if PLOT_FILTER_DIR
-        [~, azFilter_dir] = getNearestPoint(azFilter, timepoint);
-        [~, elFilter_dir] = getNearestPoint(elFilter, timepoint);
-        
-        vector_filter = AnglesToLaserVector(pos.laser, azFilter_dir, elFilter_dir);
-        quiver3(vector_filter(1), vector_filter(2), vector_filter(3), vector_filter(4), vector_filter(5), vector_filter(6), ...
-            5, 'LineStyle', '--','Color', [0 1 0]);
-        legendStrings{end+1} = "Direction after Filter";
-    end
-        
-    if PLOT_SERIAL_DIR
-        [timepoint_serial, azSerial_dir] = getNearestPoint(azSerial, timepoint);
-        [~, elSerial_dir] = getNearestPoint(elSerial, timepoint);
-        
-        vector_serial = AnglesToLaserVector(pos.laser, azSerial_dir, elSerial_dir);
-        quiver3(vector_serial(1), vector_serial(2), vector_serial(3), vector_serial(4), vector_serial(5), vector_serial(6), ...
-            5, 'LineStyle', '--','Color', [0 0 1]);
-        legendStrings{end+1} = "Direction after Serial";
-        annString = annString + " -- Time Measurements After Serial: " + string(timepoint_serial) + "s";
-    end
+    %% plotting servo direction
+    [timepoint_servo, azServo_dir] = getNearestPoint(azServo, timepoint);
+    [~, elServo_dir] = getNearestPoint(elServo, timepoint);
+    vector_servo = AnglesToLaserVector(pos.laser, azServo_dir, elServo_dir);
+    quiver3(vector_servo(1), vector_servo(2), vector_servo(3), vector_servo(4), vector_servo(5), vector_servo(6), ...
+        5, 'LineStyle', '-','Color', [1 0 0]);
+    legendStrings{end+1} = "Direction Laser";
+    annString = annString + " -- Time Measurements Laser: " + string(timepoint_servo) + "s";
     
     %% calculating errors
     error_BF = norm([xBeam_pos, yBeam_pos, zBeam_pos] - loc_mos);
@@ -234,8 +233,12 @@ for iSample = 1:n_timepoints
     angle = atan2(norm(cross(a,b)), dot(a,b));
     % calculating error
     error_serial = tan(angle)*dist_laser_mos;
+    
+    b = vector_servo(4:6);
+    angle = atan2(norm(cross(a,b)), dot(a,b));
+    error_servo = tan(angle)*dist_laser_mos;
 
-    str = " ---- ERROR METRICS: -- Error BF: " + string(error_BF) + "m -- Error Filter: " + string(error_filter) + "m -- Error Serial: " + string(error_serial) + "m";
+    str = " ---- ERROR METRICS: -- Error BF: " + string(error_BF) + "m -- Error Filter: " + string(error_filter) + "m -- Error Serial: " + string(error_serial) + "m -- Error Laser: " + string(error_servo) + "m";
     annString = annString + str;
     
     legend(legendStrings);
@@ -250,6 +253,7 @@ fprintf(" 4) Calculatin error \n");
 errors_BF = zeros(pos.n_sound_locations, 1);
 errors_filter = zeros(pos.n_sound_locations, 1);
 errors_serial = zeros(pos.n_sound_locations, 1);
+errors_laser = zeros(pos.n_sound_locations, 1);
 
 for iLoc = 1:pos.n_sound_locations
     fprintf("  - step "+string(iLoc)+" from "+string(pos.n_sound_locations)+" \n");
@@ -286,20 +290,37 @@ for iLoc = 1:pos.n_sound_locations
     b = vector_serial(4:6);
     angle = atan2(norm(cross(a,b)), dot(a,b));
     % calculating error
-    errors_serial(iLoc) = tan(angle)*dist_laser_mos; 
+    errors_serial(iLoc) = tan(angle)*dist_laser_mos;
+    
+    %% Laser Error
+    if timepoint > 10
+        [timepoint_laser, azServo_dir] = getNearestPoint(azServo, timepoint);
+        [~, elServo_dir] = getNearestPoint(elServo, timepoint);
+        
+        vector_servo = AnglesToLaserVector(pos.laser, azServo_dir, elServo_dir);
+        b = vector_servo(4:6);
+        angle = atan2(norm(cross(a,b)), dot(a,b));
+        % calculating error
+        errors_laser(iLoc) = tan(angle)*dist_laser_mos;
+    end
 end
+
+errors_laser = errors_laser(1000:end); % removing the part where the servo's were not working
 
 median_error_BF = median(errors_BF);
 median_error_filter = median(errors_filter);
 median_error_serial = median(errors_serial);
+median_error_laser = median(errors_laser);
 
 mean_error_BF = mean(errors_BF);
 mean_error_filter = mean(errors_filter);
 mean_error_serial = mean(errors_serial);
+mean_error_laser = median(errors_laser);
 
 std_error_BF = std(errors_BF);
 std_error_filter = std(errors_filter);
 std_error_serial = std(errors_serial);
+std_error_laser = std(errors_laser);
 
 fprintf("STATISTICS: \n");
 fprintf("--------------- \n");
@@ -315,5 +336,9 @@ fprintf("Error After Serial Communication: \n");
 fprintf(" - Mean Error:         "+string(mean_error_serial)+"m\n");
 fprintf(" - Standard Deviation: "+string(std_error_serial)+"m\n");
 fprintf(" - Median Error:       "+string(median_error_serial)+"m\n");
+fprintf("Error Laser: \n");
+fprintf(" - Mean Error:         "+string(mean_error_laser)+"m\n");
+fprintf(" - Standard Deviation: "+string(std_error_laser)+"m\n");
+fprintf(" - Median Error:       "+string(median_error_laser)+"m\n");
 
     

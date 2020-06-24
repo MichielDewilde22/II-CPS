@@ -186,6 +186,7 @@ BF.model_step = BF.duration / (BF.n_samples / BF.batch_size);
 
 %% 3) KALMAN FILTER
 PF_delay = 0.01;
+KF_prediction_time = 0.2;
 
 %% 4) SERIAL COMMUNICATION
 SC.baud_rate = 9600;
@@ -206,6 +207,10 @@ MCU_timerDesiredFreq = 50;
 %% 6) SERVOS
 Servo_PWM_0_degree = 4.5;
 Servo_PWM_180_degree = 10.5;
+
+Servo_LP_f = 20; % LP frequency servos
+Servo_LP_num = [1];
+Servo_LP_den = [1/(2*pi*Servo_LP_f) 1];
 
 %% 7) HUMAN DETECTION SYSTEM
 % printing progress
