@@ -25,7 +25,7 @@ fprintf("Setting workspace variables...\n");
 folder = fileparts(which(mfilename)); 
 addpath(genpath(folder));
 
-GENERATE_MIC_DATA = 0; % 0 if it is already genenerated.
+GENERATE_MIC_DATA = 1; % 0 if it is already genenerated.
 PLOT_ROOM = 1; % plot the room with arrays and sound locations.
 
 % clearing worskpace
@@ -190,9 +190,11 @@ PF_delay = 0.01;
 %% 4) SERIAL COMMUNICATION
 SC.baud_rate = 9600;
 SC.n_bits = 224;
-SC.delay = SC.n_bits / SC.baud_rate;
+SC.delay_serial = SC.n_bits / SC.baud_rate;
+SC.extra_delay = 0.01;
+SC.delay = SC.delay_serial + SC.extra_delay;
 
-SC.avg_packet_loss = 1; % in percentage
+SC.avg_packet_loss = 2; % in percentage
 
 %% 5) MICROCONTROLLER
 MCU_freq = 1000000;
