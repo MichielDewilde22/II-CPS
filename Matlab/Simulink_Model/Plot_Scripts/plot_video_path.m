@@ -1,6 +1,6 @@
 close all
 
-figure('units','pixels','position',[0 0 1920 1080])
+figure('units','pixels','position',[0 0 1920 850])
 axis tight manual 
 grid on; 
 xlabel('x [m]'); 
