@@ -91,7 +91,7 @@ legend("Angles after Beamforming", "Angles After Filter", "Angles After Serial C
 
 error_timepoints = 0:0.5:BF.duration;
 
-errors_az_beam = zeros(length(error_timepoints), 1);
+errors_az_beam = zero(length(error_timepoints), 1);
 errors_el_beam = errors_az_beam;
 errors_az_filter = errors_az_beam;
 errors_el_filter = errors_az_beam;
@@ -104,10 +104,10 @@ errors_el_laser = errors_az_beam;
 for indx = 1:length(error_timepoints)
     timepoint = error_timepoints(indx);
     [~, mos_az_dir] = getNearestPointArray(time_sound, az_mos_deg, timepoint);
-    [~, mos_el_dir] = getNearestPointArray(time_sound, el_mos_deg, timepoint);
+    [~, mos_el_dir] = getNearestPointArray(time_dound, el_mos_deg, timepoint);
     
     [~, beam_az_dir] = getNearestPointArray(xBeam.time, az_beam_deg, timepoint);
-    [~, beam_el_dir] = getNearestPointArray(xBeam.time, el_beam_deg, timepoint);
+    [~, beam_el_dir] = getNearestPointArray(xBeam.time, az_beam_deg, timepoint);
     
     [~, filter_az_dir] = getNearestPoint(azFilter, timepoint);
     [~, filter_el_dir] = getNearestPoint(elFilter, timepoint);
@@ -130,9 +130,6 @@ for indx = 1:length(error_timepoints)
     errors_az_laser(indx) = abs(mos_az_dir - laser_az_dir);
     errors_el_laser(indx) = abs(mos_el_dir - laser_el_dir);
 end
-
-errors_az_laser = errors_az_laser(4:end);
-errors_el_laser = errors_el_laser(4:end);
 
 mean_az_beam = mean(errors_az_beam);
 std_az_beam = std(errors_az_beam);
@@ -162,30 +159,30 @@ fprintf("STATISTICS: \n");
 fprintf("--------------- \n");
 fprintf("Error Beamforming: \n");
 fprintf(" - Azimuth: \n");
-fprintf(" -- Mean Error:         "+string(mean_az_beam)+" degrees \n");
-fprintf(" -- Standard Deviation: "+string(std_az_beam)+" degrees \n");
+fprintf(" -- Mean Error:         "+string(mean_az_beam)+"m\n");
+fprintf(" -- Standard Deviation: "+string(std_az_beam)+"m\n");
 fprintf(" - Elevation: \n");
-fprintf(" -- Mean Error:         "+string(mean_el_beam)+" degrees \n");
-fprintf(" -- Standard Deviation: "+string(std_el_beam)+" degrees \n");
+fprintf(" -- Mean Error:         "+string(mean_el_beam)+"m\n");
+fprintf(" -- Standard Deviation: "+string(std_el_beam)+"m\n");
 fprintf("Error Filter: \n");
 fprintf(" - Azimuth: \n");
-fprintf(" -- Mean Error:         "+string(mean_az_filter)+" degrees \n");
-fprintf(" -- Standard Deviation: "+string(std_az_filter)+" degrees \n");
+fprintf(" -- Mean Error:         "+string(mean_az_filter)+"m\n");
+fprintf(" -- Standard Deviation: "+string(std_az_filter)+"m\n");
 fprintf(" - Elevation: \n");
-fprintf(" -- Mean Error:         "+string(mean_el_filter)+" degrees \n");
-fprintf(" -- Standard Deviation: "+string(std_el_filter)+" degrees \n");
+fprintf(" -- Mean Error:         "+string(mean_el_filter)+"m\n");
+fprintf(" -- Standard Deviation: "+string(std_el_filter)+"m\n");
 fprintf("Error Serial: \n");
 fprintf(" - Azimuth: \n");
-fprintf(" -- Mean Error:         "+string(mean_az_serial)+" degrees \n");
-fprintf(" -- Standard Deviation: "+string(std_az_serial)+" degrees \n");
+fprintf(" -- Mean Error:         "+string(mean_az_serial)+"m\n");
+fprintf(" -- Standard Deviation: "+string(std_error_BF)+"m\n");
 fprintf(" - Elevation: \n");
-fprintf(" -- Mean Error:         "+string(mean_el_serial)+" degrees \n");
-fprintf(" -- Standard Deviation: "+string(std_el_serial)+" degrees \n");
+fprintf(" -- Mean Error:         "+string(mean_error_BF)+"m\n");
+fprintf(" -- Standard Deviation: "+string(std_error_BF)+"m\n");
 fprintf("Error Laser: \n");
 fprintf(" - Azimuth: \n");
-fprintf(" -- Mean Error:         "+string(mean_az_laser)+" degrees \n");
-fprintf(" -- Standard Deviation: "+string(std_az_laser)+" degrees \n");
+fprintf(" -- Mean Error:         "+string(mean_error_BF)+"m\n");
+fprintf(" -- Standard Deviation: "+string(std_error_BF)+"m\n");
 fprintf(" - Elevation: \n");
-fprintf(" -- Mean Error:         "+string(mean_el_laser)+" degrees \n");
-fprintf(" -- Standard Deviation: "+string(std_el_laser)+" degrees \n");
+fprintf(" -- Mean Error:         "+string(mean_error_BF)+"m\n");
+fprintf(" -- Standard Deviation: "+string(std_error_BF)+"m\n");
 
