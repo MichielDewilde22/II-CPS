@@ -179,7 +179,7 @@ for i_batch = 1:n_batch
     power2 = BeamformData(current_data_2, steering_matrix, n_fft_bins, first_bin, last_bin, angles);
     power3 = BeamformData(current_data_3, steering_matrix, n_fft_bins, first_bin, last_bin, angles);
     
-    [~, max_index] = max(power1);
+    [max_val_p1, max_index] = max(power1);
     dir1_d = [angles(1,max_index) angles(2,max_index)];
     [~, max_index] = max(power2);
     dir2_d = [angles(1,max_index) angles(2,max_index)];
@@ -196,48 +196,54 @@ for i_batch = 1:n_batch
     
     if sum(print_batches==print_counter)>0
         fprintf("Angles of batch: "+i_batch+"\n");
-        
+        timepoint = (i_batch/n_batch)*audio.duration;
         figure;
-        subplot(1,2,1);
         hold on; 
         grid on; 
-        xlabel('x'); 
-        ylabel('y'); 
-        zlabel('z'); 
+        xlabel('x [m]'); 
+        ylabel('y [m]'); 
+        zlabel('z [m]'); 
         axis equal;
         xlim([0 room_dimensions(1)]);
         ylim([0 room_dimensions(2)]);
         zlim([0 room_dimensions(3)]);
         % all nodes
         scatter3(position_nodes(:,1), position_nodes(:,2),position_nodes(:,3), 'MarkerFaceColor', [1 0 0]);
+        scatter3(position_nodes(1,1), position_nodes(1,2),position_nodes(1,3), 150, 'MarkerEdgeColor', [1 0 1]);
         % direction of nodes
-        quiver3(vectors(:,1), vectors(:,2), vectors(:,3), vectors(:,4), vectors(:,5), vectors(:,6));
+        quiver3(vectors(:,1), vectors(:,2), vectors(:,3), vectors(:,4), vectors(:,5), vectors(:,6),5);
         % line pointed by nodes
         scatter3(x, y, z, 'MarkerFaceColor', [0 1 0]);
         % current point
         scatter3(sound_location(loc_index,1), sound_location(loc_index,2), sound_location(loc_index,3), 'MarkerFaceColor', [0 0 1]);
         view(20,20);
         current_difference = norm(locations(i_batch,:) - intersections(i_batch,:));
-        error_string = "Batch " + string(i_batch) + ", Difference = "+string(current_difference)+" meter.";
+        error_string = "Direction Beamforming Arrays at "+string(timepoint)+"s";
         title(error_string);
-        legend('Position Nodes', 'Directions', 'calculated point', 'actual point');
+        legend('Position Nodes', 'First Node', 'Directions', 'calculated point', 'actual point');
         hold off;
         
         %% plot steering array 1
-        subplot(1,2,2);
-        interpolatorES = scatteredInterpolant(squeeze(angles(1,:))', squeeze(angles(2,:))', power1(:));
+        power1_db = 10*log10(power1(:)./max_val_p1);
+        
+        %subplot(1,2,2);
+        figure;
+        interpolatorES = scatteredInterpolant(squeeze(angles(1,:))', squeeze(angles(2,:))', power1_db(:));
         cla;
         hp = pcolor( txLAEAP, tyLAEAP, interpolatorES( azMatES, elMatES ));
         set( hp, 'linestyle', 'none' )
         set(hp, 'CDataMode', 'manual')
         axis equal
         axis tight
+        ylabel("Energy in dB (relative to maximum value)");
+        xlabel("Degrees");
         hold on;
         plot(txVertical, tyVertical, '-k');
         plot(txHorizontal', tyHorizontal', '-k');
         hold off;
         axis off
-        title_string = "Batch "+ string(i_batch)+", Energy Angles array 1 (Y=0)";
+        
+        title_string = "Energy Angles array 1 at "+string(timepoint)+"s (Positioned at Y=0)";
         title( title_string )
         colormap default
         colorbar;
