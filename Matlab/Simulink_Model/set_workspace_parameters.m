@@ -186,7 +186,7 @@ BF.model_step = BF.duration / (BF.n_samples / BF.batch_size);
 
 %% 3) KALMAN FILTER
 PF_delay = 0.01;
-KF_prediction_time = 0.2;
+KF_prediction_time = 0;
 
 %% 4) SERIAL COMMUNICATION
 SC.baud_rate = 9600;

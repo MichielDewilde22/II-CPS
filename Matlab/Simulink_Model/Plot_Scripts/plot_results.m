@@ -249,7 +249,7 @@ for iSample = 1:n_timepoints
 end
 
 %% 3 CALCULATION ERROR STATISTICS
-fprintf(" 4) Calculatin error \n");
+fprintf(" 4) Calculating error \n");
 errors_BF = zeros(pos.n_sound_locations, 1);
 errors_filter = zeros(pos.n_sound_locations, 1);
 errors_serial = zeros(pos.n_sound_locations, 1);
