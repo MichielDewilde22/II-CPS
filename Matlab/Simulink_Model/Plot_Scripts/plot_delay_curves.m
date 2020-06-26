@@ -89,7 +89,7 @@ plot(elServo.time, elServo.data);
 plot(time_sound', el_mos_deg);
 legend("Angles after Beamforming", "Angles After Filter", "Angles After Serial Comm.", "Angles of Laser", "Actual Angle Mosquito");
 
-error_timepoints = 0:0.5:BF.duration;
+error_timepoints = 0:0.1:BF.duration;
 
 errors_az_beam = zeros(length(error_timepoints), 1);
 errors_el_beam = errors_az_beam;
@@ -102,6 +102,9 @@ errors_el_laser = errors_az_beam;
 
 % calculation of beamforming error
 for indx = 1:length(error_timepoints)
+    str = "progress: "+string(indx)+" of "+string(length(error_timepoints))+"\n";
+    fprintf(str);
+    
     timepoint = error_timepoints(indx);
     [~, mos_az_dir] = getNearestPointArray(time_sound, az_mos_deg, timepoint);
     [~, mos_el_dir] = getNearestPointArray(time_sound, el_mos_deg, timepoint);
